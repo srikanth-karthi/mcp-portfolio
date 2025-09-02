@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  mcp-portfolio-server:
+    build: .
+    container_name: portfolio-mcp
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+    volumes:
+      - ../db/sample-data.json:/app/db/sample-data.json:ro
+    stdin_open: true
+    tty: true
+    networks:
+      - mcp-network
+
+networks:
+  mcp-network:
+    driver: bridge
