@@ -26,9 +26,9 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/srikanth-karthi/srikanth-mcp-portfolio"
-Repository = "https://github.com/srikanth-karthi/srikanth-mcp-portfolio"
-Documentation = "https://github.com/srikanth-karthi/srikanth-mcp-portfolio#readme"
+Homepage = "https://github.com/srikanthkarthi/mcp-portfolio"
+Repository = "https://github.com/srikanthkarthi/mcp-portfolio"
+Documentation = "https://github.com/srikanthkarthi/mcp-portfolio#readme"
 
 [project.scripts]
 srikanth-mcp-portfolio = "mcp_portfolio_server:main"

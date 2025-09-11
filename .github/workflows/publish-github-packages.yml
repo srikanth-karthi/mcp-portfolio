@@ -1,0 +1,232 @@
+name: Publish to All Registries
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish (e.g., 1.0.0)'
+        required: true
+        default: '1.0.0'
+
+jobs:
+  publish-npm-github-packages:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js for GitHub Packages
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@${{ github.repository_owner }}'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+      - name: Build package
+        run: npm run build --if-present
+
+      - name: Publish to GitHub Packages
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish-npm-public:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write  # IMPORTANT: this permission is mandatory for npm provenance
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js for npmjs.com
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Update package.json for public npm
+        run: |
+          # Create a version without GitHub scope for npmjs.com
+          sed 's/@srikanthkarthi\/srikanth-mcp-portfolio-server/srikanth-mcp-portfolio-server/g' package.json > package-public.json
+          # Remove publishConfig for npmjs.com
+          node -e "
+            const pkg = require('./package-public.json');
+            delete pkg.publishConfig;
+            require('fs').writeFileSync('./package-public.json', JSON.stringify(pkg, null, 2));
+          "
+          mv package-public.json package.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+      - name: Build package
+        run: npm run build --if-present
+
+      - name: Publish to npmjs.com with provenance
+        run: npm publish --provenance --access public
+
+  publish-python-pypi:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write  # IMPORTANT: this permission is mandatory for trusted publishing
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install build dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install build
+
+      - name: Build Python package
+        run: python -m build
+
+      - name: Publish to PyPI using OIDC
+        uses: pypa/gh-action-pypi-publish@release/v1
+
+  publish-docker-github-registry:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build and push to GitHub Container Registry
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          target: nodejs
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/mcp-portfolio-server:latest
+            ghcr.io/${{ github.repository_owner }}/mcp-portfolio-server:${{ steps.version.outputs.version }}
+            ghcr.io/${{ github.repository_owner }}/mcp-portfolio-server:nodejs-latest
+            ghcr.io/${{ github.repository_owner }}/mcp-portfolio-server:nodejs-${{ steps.version.outputs.version }}
+          platforms: linux/amd64,linux/arm64
+
+      - name: Build and push Python image to GitHub Container Registry
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          target: python
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/mcp-portfolio-server:python-latest
+            ghcr.io/${{ github.repository_owner }}/mcp-portfolio-server:python-${{ steps.version.outputs.version }}
+          platforms: linux/amd64,linux/arm64
+
+      - name: Build and push Multi-runtime image to GitHub Container Registry
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          target: multi
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/mcp-portfolio-server:multi-latest
+            ghcr.io/${{ github.repository_owner }}/mcp-portfolio-server:multi-${{ steps.version.outputs.version }}
+          platforms: linux/amd64,linux/arm64
+
+  publish-docker-hub:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write  # IMPORTANT: this permission is mandatory for OIDC
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: srikanthkarthi
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build and push Node.js image to Docker Hub
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          target: nodejs
+          push: true
+          tags: |
+            srikanthkarthi/mcp-portfolio-server:latest
+            srikanthkarthi/mcp-portfolio-server:${{ steps.version.outputs.version }}
+            srikanthkarthi/mcp-portfolio-server:nodejs-latest
+            srikanthkarthi/mcp-portfolio-server:nodejs-${{ steps.version.outputs.version }}
+          platforms: linux/amd64,linux/arm64
+
+      - name: Build and push Python image to Docker Hub
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          target: python
+          push: true
+          tags: |
+            srikanthkarthi/mcp-portfolio-server:python-latest
+            srikanthkarthi/mcp-portfolio-server:python-${{ steps.version.outputs.version }}
+          platforms: linux/amd64,linux/arm64
+
+      - name: Build and push Multi-runtime image to Docker Hub
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          target: multi
+          push: true
+          tags: |
+            srikanthkarthi/mcp-portfolio-server:multi-latest
+            srikanthkarthi/mcp-portfolio-server:multi-${{ steps.version.outputs.version }}
+          platforms: linux/amd64,linux/arm64

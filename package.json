@@ -1,5 +1,5 @@
 {
-  "name": "srikanth-mcp-portfolio-server",
+  "name": "@srikanthkarthi/srikanth-mcp-portfolio-server",
   "version": "1.0.0",
   "description": "MCP server for Srikanth's portfolio data",
   "type": "module",
@@ -26,11 +26,13 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/srikanthkarthi/ai-portfolio-nextjs.git",
-    "directory": "mcp-portfolio-server"
+    "url": "git+https://github.com/srikanthkarthi/mcp-portfolio.git"
   },
-  "homepage": "https://github.com/srikanthkarthi/ai-portfolio-nextjs/tree/main/mcp-portfolio-server",
+  "homepage": "https://github.com/srikanthkarthi/mcp-portfolio",
   "bugs": {
-    "url": "https://github.com/srikanthkarthi/ai-portfolio-nextjs/issues"
+    "url": "https://github.com/srikanthkarthi/mcp-portfolio/issues"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
   }
 }

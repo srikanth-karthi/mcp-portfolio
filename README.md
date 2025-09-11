@@ -1,6 +1,6 @@
 # Portfolio MCP Server
 
-A Model Context Protocol (MCP) server that provides access to Srikanth Karthikeyan's portfolio data through structured tools.
+A dual-stack Model Context Protocol (MCP) server for Srikanth Karthikeyan's portfolio data, available in both Node.js and Python implementations with containerized deployment options.
 
 ## Features
 
@@ -32,57 +32,106 @@ Get detailed information about technical skills and tools.
 **Parameters:**
 - `type` (optional): Filter by specific tech type
 
-## Installation
+## 🚀 Installation & Deployment
 
-### From npm (Recommended)
+### Package Registries
 
-No installation required! The package will be automatically downloaded when used with `npx`.
-
-### From Source
-
-1. Navigate to the server directory:
+#### Node.js Packages (Both Registries)
 ```bash
-cd mcp-portfolio-server
+# From npmjs.com (public)
+npm install srikanth-mcp-portfolio-server
+
+# From GitHub Packages 
+npm install @srikanthkarthi/srikanth-mcp-portfolio-server
 ```
 
-2. Install dependencies:
+#### Python Package
+```bash
+# From PyPI (public)
+pip install srikanth-mcp-portfolio
+```
+
+### Docker Deployment (Multiple Registries)
+
+#### From Docker Hub (Public)
+```bash
+# Node.js version
+docker run -it srikanthkarthi/mcp-portfolio-server:nodejs-latest
+
+# Python version  
+docker run -it srikanthkarthi/mcp-portfolio-server:python-latest
+
+# Multi-runtime version
+docker run -it srikanthkarthi/mcp-portfolio-server:multi-latest
+```
+
+#### From GitHub Container Registry
+```bash
+# Node.js version
+docker run -it ghcr.io/srikanthkarthi/mcp-portfolio-server:nodejs-latest
+
+# Python version
+docker run -it ghcr.io/srikanthkarthi/mcp-portfolio-server:python-latest
+
+# Multi-runtime version
+docker run -it ghcr.io/srikanthkarthi/mcp-portfolio-server:multi-latest
+```
+
+#### Using Docker Compose (Local Development)
+```bash
+# Choose one:
+docker compose up mcp-portfolio-nodejs    # Node.js only
+docker compose up mcp-portfolio-python    # Python only
+docker compose up mcp-portfolio-multi     # Both runtimes
+```
+
+### Development Setup
+
+#### Node.js Development
 ```bash
 npm install
-```
-
-## Usage
-
-### Running the Server
-```bash
-npm start
-```
-
-### Development Mode
-```bash
 npm run dev
 ```
 
-### Claude Desktop Integration
+#### Python Development
+```bash
+pip install -e .
+python -m mcp_portfolio_server.server
+```
 
-#### Using Docker
-Add this configuration to your Claude Desktop settings:
+## 🔧 Claude Desktop Integration
 
+### Using Docker Hub (Public)
 ```json
 {
   "mcpServers": {
     "portfolio": {
-      "command": "docker",
+      "command": "docker", 
       "args": [
         "run", "-i", "--rm",
-        "srikanthkarthi/srikanth-mcp-portfolio:latest"
+        "srikanthkarthi/mcp-portfolio-server:latest"
       ]
     }
   }
 }
 ```
 
+### Using GitHub Container Registry  
+```json
+{
+  "mcpServers": {
+    "portfolio": {
+      "command": "docker",
+      "args": [
+        "run", "-i", "--rm", 
+        "ghcr.io/srikanthkarthi/mcp-portfolio-server:latest"
+      ]
+    }
+  }
+}
+```
 
-#### Using npm Package (Recommended)
+### Using npm Package (Public Registry)
 ```json
 {
   "mcpServers": {
@@ -94,29 +143,82 @@ Add this configuration to your Claude Desktop settings:
 }
 ```
 
-#### Using uvx Package
+### Using npm Package from GitHub Packages
 ```json
 {
   "mcpServers": {
     "portfolio": {
-      "command": "uvx",
-      "args": ["srikanth-mcp-portfolio"]
+      "command": "npx",
+      "args": ["@srikanthkarthi/srikanth-mcp-portfolio-server"]
     }
   }
 }
 ```
 
-#### Using Node.js (Development)
+### Using Python Package
+```json
+{
+  "mcpServers": {
+    "portfolio": {
+      "command": "python",
+      "args": ["-m", "mcp_portfolio_server.server"]
+    }
+  }
+}
+```
+
+### Development Mode
 ```json
 {
   "mcpServers": {
     "portfolio": {
       "command": "node",
-      "args": ["/path/to/mcp-portfolio-server/src/index.js"],
-      "cwd": "/path/to/mcp-portfolio-server"
+      "args": ["/path/to/mcp-portfolio/src/index.js"],
+      "cwd": "/path/to/mcp-portfolio"
     }
   }
 }
+```
+
+## 📦 Automated Building & Publishing
+
+### GitHub Actions Workflows
+
+The repository includes automated CI/CD workflows:
+
+- **Triggers**: Git tags (`v*`) or manual workflow dispatch
+- **Builds**: Multi-architecture Docker images (AMD64/ARM64)
+- **Publishes**: 
+  - Node.js package to GitHub Packages
+  - Python package to PyPI  
+  - Docker images to GitHub Container Registry
+
+### Manual Building
+
+#### Docker Build Commands
+```bash
+# Build Node.js image
+docker build --target nodejs -t mcp-portfolio:nodejs .
+
+# Build Python image  
+docker build --target python -t mcp-portfolio:python .
+
+# Build multi-runtime image
+docker build --target multi -t mcp-portfolio:multi .
+```
+
+### Configuration Options
+
+| Environment Variable | Description | Default |
+|---------------------|-------------|---------|
+| `NODE_ENV` | Node.js environment | `production` |
+| `PYTHONUNBUFFERED` | Python output buffering | `1` |
+| `DATA_PATH` | Portfolio data file path | `/app/sample-data.json` |
+
+Switch between Node.js and Python in multi-runtime container:
+```yaml
+# In docker-compose.yml, uncomment to use Python:
+command: ["python3", "-m", "mcp_portfolio_server.server"]
 ```
 
 ## Data Categories
