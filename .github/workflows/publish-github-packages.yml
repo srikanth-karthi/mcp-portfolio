@@ -38,30 +38,10 @@ jobs:
       - name: "🔨 Build Package Assets"
         run: npm run build --if-present
 
-      - name: "🔍 Check if Version Already Exists on GitHub Packages"
-        id: github_npm_version_check
-        run: |
-          PACKAGE_NAME=$(node -p "require('./package.json').name")
-          VERSION=$(node -p "require('./package.json').version")
-          if npm view "${PACKAGE_NAME}@${VERSION}" version --registry=https://npm.pkg.github.com >/dev/null 2>&1; then
-            echo "exists=true" >> $GITHUB_OUTPUT
-            echo "Version ${VERSION} already exists on GitHub Packages"
-          else
-            echo "exists=false" >> $GITHUB_OUTPUT
-            echo "Version ${VERSION} does not exist on GitHub Packages, proceeding with publish"
-          fi
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: "🚀 Publish to GitHub Packages"
-        if: steps.github_npm_version_check.outputs.exists == 'false'
         run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: "⚠️ Skip GitHub Packages Publish - Version Already Exists"
-        if: steps.github_npm_version_check.outputs.exists == 'true'
-        run: echo "Skipping GitHub Packages publish as version already exists"
 
   publish-npm-public-registry:
     name: "📦 Publish NPM Package to Public Registry"
@@ -99,28 +79,10 @@ jobs:
       - name: "🔨 Build Package Assets"
         run: npm run build --if-present
 
-      - name: "🔍 Check if Version Already Exists on NPM"
-        id: npm_version_check
-        run: |
-          PACKAGE_NAME=$(node -p "require('./package.json').name")
-          VERSION=$(node -p "require('./package.json').version")
-          if npm view "${PACKAGE_NAME}@${VERSION}" version >/dev/null 2>&1; then
-            echo "exists=true" >> $GITHUB_OUTPUT
-            echo "Version ${VERSION} already exists on npm registry"
-          else
-            echo "exists=false" >> $GITHUB_OUTPUT
-            echo "Version ${VERSION} does not exist, proceeding with publish"
-          fi
-
       - name: "🚀 Publish to Public NPM Registry"
-        if: steps.npm_version_check.outputs.exists == 'false'
         run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-      - name: "⚠️ Skip NPM Publish - Version Already Exists"
-        if: steps.npm_version_check.outputs.exists == 'true'
-        run: echo "Skipping npm publish as version already exists"
 
   publish-python-pypi-registry:
     name: "🐍 Publish Python Package to PyPI"
