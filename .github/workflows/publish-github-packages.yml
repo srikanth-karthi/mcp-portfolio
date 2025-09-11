@@ -79,10 +79,28 @@ jobs:
       - name: "🔨 Build Package Assets"
         run: npm run build --if-present
 
+      - name: "🔍 Check if Version Already Exists on NPM"
+        id: npm_version_check
+        run: |
+          PACKAGE_NAME=$(node -p "require('./package.json').name")
+          VERSION=$(node -p "require('./package.json').version")
+          if npm view "${PACKAGE_NAME}@${VERSION}" version >/dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "Version ${VERSION} already exists on npm registry"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "Version ${VERSION} does not exist, proceeding with publish"
+          fi
+
       - name: "🚀 Publish to Public NPM Registry"
+        if: steps.npm_version_check.outputs.exists == 'false'
         run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: "⚠️ Skip NPM Publish - Version Already Exists"
+        if: steps.npm_version_check.outputs.exists == 'true'
+        run: echo "Skipping npm publish as version already exists"
 
   publish-python-pypi-registry:
     name: "🐍 Publish Python Package to PyPI"
@@ -107,9 +125,28 @@ jobs:
       - name: "🔨 Build Python Distribution Package"
         run: python -m build
 
+      - name: "🔍 Check if Version Already Exists on PyPI"
+        id: pypi_version_check
+        run: |
+          PACKAGE_NAME=$(python -c "import configparser; c = configparser.ConfigParser(); c.read('setup.cfg'); print(c.get('metadata', 'name', fallback='mcp-portfolio-server'))")
+          VERSION=$(python -c "import configparser; c = configparser.ConfigParser(); c.read('setup.cfg'); print(c.get('metadata', 'version', fallback='1.0.0'))")
+          if pip index versions "${PACKAGE_NAME}" 2>/dev/null | grep -q "${VERSION}"; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "Version ${VERSION} already exists on PyPI"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "Version ${VERSION} does not exist on PyPI, proceeding with publish"
+          fi
+        continue-on-error: true
+
       - name: "🚀 Publish to PyPI via Trusted Publishing"
+        if: steps.pypi_version_check.outputs.exists == 'false'
         uses: pypa/gh-action-pypi-publish@release/v1
         continue-on-error: true
+
+      - name: "⚠️ Skip PyPI Publish - Version Already Exists"
+        if: steps.pypi_version_check.outputs.exists == 'true'
+        run: echo "Skipping PyPI publish as version already exists"
 
   publish-docker-github-container-registry:
     name: "🐳 Publish Docker Images to GitHub Container Registry"
