@@ -3,7 +3,7 @@
 # =============================================================================
 # Node.js Stage
 # =============================================================================
-FROM node:20-alpine as nodejs
+FROM node:20-alpine AS nodejs
 
 WORKDIR /app
 
@@ -32,12 +32,13 @@ CMD ["node", "src/index.js"]
 # =============================================================================
 # Python Stage
 # =============================================================================
-FROM python:3.11-slim as python
+FROM python:3.11-slim AS python
 
 WORKDIR /app
 
 # Copy Python project files
 COPY pyproject.toml ./
+COPY README.md ./
 COPY src/mcp_portfolio_server/ ./src/mcp_portfolio_server/
 COPY sample-data.json ./
 
@@ -59,7 +60,7 @@ CMD ["python", "-m", "mcp_portfolio_server.server"]
 # =============================================================================
 # Multi-runtime Stage (Both Node.js and Python)
 # =============================================================================
-FROM ubuntu:22.04 as multi
+FROM ubuntu:22.04 AS multi
 
 # Install Node.js and Python
 RUN apt-get update && apt-get install -y \
@@ -75,6 +76,7 @@ WORKDIR /app
 # Copy all source files
 COPY package*.json ./
 COPY pyproject.toml ./
+COPY README.md ./
 COPY src/ ./src/
 COPY sample-data.json ./
 
