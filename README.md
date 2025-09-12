@@ -42,7 +42,7 @@ Get detailed information about technical skills and tools.
 npm install srikanth-mcp-portfolio-server
 
 # From GitHub Packages 
-npm install @srikanthkarthi/srikanth-mcp-portfolio-server
+npm install @srikanth-karthi/srikanth-mcp-portfolio-server
 ```
 
 #### Python Package
@@ -68,13 +68,13 @@ docker run -it srikanthkarthi/mcp-portfolio-server:multi-latest
 #### From GitHub Container Registry
 ```bash
 # Node.js version
-docker run -it ghcr.io/srikanthkarthi/mcp-portfolio-server:nodejs-latest
+docker run -it ghcr.io/srikanth-karthi/mcp-portfolio-server:nodejs-latest
 
 # Python version
-docker run -it ghcr.io/srikanthkarthi/mcp-portfolio-server:python-latest
+docker run -it ghcr.io/srikanth-karthi/mcp-portfolio-server:python-latest
 
 # Multi-runtime version
-docker run -it ghcr.io/srikanthkarthi/mcp-portfolio-server:multi-latest
+docker run -it ghcr.io/srikanth-karthi/mcp-portfolio-server:multi-latest
 ```
 
 #### Using Docker Compose (Local Development)
@@ -149,7 +149,7 @@ python -m mcp_portfolio_server.server
   "mcpServers": {
     "portfolio": {
       "command": "npx",
-      "args": ["@srikanthkarthi/srikanth-mcp-portfolio-server"]
+      "args": ["@srikanth-karthi/srikanth-mcp-portfolio-server"]
     }
   }
 }
