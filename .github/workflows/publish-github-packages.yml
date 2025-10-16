@@ -11,6 +11,13 @@ on:
         required: true
         default: '1.0.0'
 
+# ✅ Added global permissions for attestations
+permissions:
+  contents: write
+  packages: write
+  id-token: write
+  attestations: write
+
 concurrency:
   group: publish-${{ github.ref }}
   cancel-in-progress: true
@@ -42,10 +49,30 @@ jobs:
       - name: "🔨 Build Package Assets"
         run: npm run build --if-present
 
+      # ✅ Check if version exists in GitHub Packages
+      - name: "🔍 Check if Version Already Exists on GitHub Packages"
+        id: check_github_npm
+        run: |
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          PACKAGE_NAME=$(node -p "require('./package.json').name")
+          if npm view ${PACKAGE_NAME}@${PACKAGE_VERSION} --registry=https://npm.pkg.github.com > /dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "Version ${PACKAGE_VERSION} already exists on GitHub Packages."
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "Version ${PACKAGE_VERSION} does not exist. Proceeding with publish."
+          fi
+        continue-on-error: true
+
       - name: "🚀 Publish to GitHub Packages"
+        if: steps.check_github_npm.outputs.exists == 'false'
         run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: "⚠️ Skip GitHub NPM Publish - Version Exists"
+        if: steps.check_github_npm.outputs.exists == 'true'
+        run: echo "Skipping publish because version already exists."
 
   publish-npm-public-registry:
     name: "📦 Publish NPM Package to Public Registry"
@@ -81,10 +108,30 @@ jobs:
       - name: "🔨 Build Package Assets"
         run: npm run build --if-present
 
+      # ✅ Check if version exists on npmjs.org
+      - name: "🔍 Check if Version Already Exists on NPM Registry"
+        id: check_public_npm
+        run: |
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          PACKAGE_NAME=$(node -p "require('./package.json').name")
+          if npm view ${PACKAGE_NAME}@${PACKAGE_VERSION} --registry=https://registry.npmjs.org > /dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "Version ${PACKAGE_VERSION} already exists on npmjs.org."
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "Version ${PACKAGE_VERSION} does not exist. Proceeding with publish."
+          fi
+        continue-on-error: true
+
       - name: "🚀 Publish to Public NPM Registry"
+        if: steps.check_public_npm.outputs.exists == 'false'
         run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: "⚠️ Skip Public NPM Publish - Version Exists"
+        if: steps.check_public_npm.outputs.exists == 'true'
+        run: echo "Skipping publish because version already exists."
 
   publish-python-pypi-registry:
     name: "🐍 Publish Python Package to PyPI"
@@ -139,6 +186,7 @@ jobs:
       contents: read
       packages: write
       id-token: write
+      attestations: write
     steps:
       - name: "🔄 Checkout Repository"
         uses: actions/checkout@v4
