@@ -11,6 +11,10 @@ on:
         required: true
         default: '1.0.0'
 
+concurrency:
+  group: publish-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   publish-npm-github-registry:
     name: "📦 Publish NPM Package to GitHub Registry"
@@ -60,9 +64,7 @@ jobs:
 
       - name: "🔧 Configure Package for Public NPM"
         run: |
-          # Create a version without GitHub scope for npmjs.com
           sed 's/@srikanth-karthi\/srikanth-mcp-portfolio-server/srikanth-mcp-portfolio-server/g' package.json > package-public.json
-          # Remove publishConfig for npmjs.com
           node -e "
             const pkg = require('./package-public.json');
             delete pkg.publishConfig;
@@ -88,7 +90,7 @@ jobs:
     name: "🐍 Publish Python Package to PyPI"
     runs-on: ubuntu-latest
     permissions:
-      id-token: write  # IMPORTANT: this permission is mandatory for trusted publishing
+      id-token: write
       contents: read
     steps:
       - name: "🔄 Checkout Repository"
@@ -136,6 +138,7 @@ jobs:
     permissions:
       contents: read
       packages: write
+      id-token: write
     steps:
       - name: "🔄 Checkout Repository"
         uses: actions/checkout@v4
@@ -160,6 +163,7 @@ jobs:
           fi
 
       - name: "🔨 Build & Push Node.js Docker Image"
+        id: node_image_push
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -168,11 +172,17 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository_owner }}/mcp-portfolio-server:latest
             ghcr.io/${{ github.repository_owner }}/mcp-portfolio-server:${{ steps.version.outputs.version }}
-            ghcr.io/${{ github.repository_owner }}/mcp-portfolio-server:nodejs-latest
-            ghcr.io/${{ github.repository_owner }}/mcp-portfolio-server:nodejs-${{ steps.version.outputs.version }}
           platforms: linux/amd64,linux/arm64
 
+      - name: "🔐 Generate Build Provenance (Node.js)"
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-name: ghcr.io/${{ github.repository_owner }}/mcp-portfolio-server
+          subject-digest: ${{ steps.node_image_push.outputs.digest }}
+          push-to-registry: true
+
       - name: "🔨 Build & Push Python Docker Image"
+        id: python_image_push
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -183,7 +193,15 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/mcp-portfolio-server:python-${{ steps.version.outputs.version }}
           platforms: linux/amd64,linux/arm64
 
+      - name: "🔐 Generate Build Provenance (Python)"
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-name: ghcr.io/${{ github.repository_owner }}/mcp-portfolio-server
+          subject-digest: ${{ steps.python_image_push.outputs.digest }}
+          push-to-registry: true
+
       - name: "🔨 Build & Push Multi-Runtime Docker Image"
+        id: multi_image_push
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -193,6 +211,13 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/mcp-portfolio-server:multi-latest
             ghcr.io/${{ github.repository_owner }}/mcp-portfolio-server:multi-${{ steps.version.outputs.version }}
           platforms: linux/amd64,linux/arm64
+
+      - name: "🔐 Generate Build Provenance (Multi)"
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-name: ghcr.io/${{ github.repository_owner }}/mcp-portfolio-server
+          subject-digest: ${{ steps.multi_image_push.outputs.digest }}
+          push-to-registry: true
 
   publish-docker-hub-registry:
     name: "🐳 Publish Docker Images to Docker Hub"
@@ -223,6 +248,7 @@ jobs:
           fi
 
       - name: "🔨 Build & Push Node.js Docker Image"
+        id: node_dockerhub_push
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -231,11 +257,10 @@ jobs:
           tags: |
             srikanthkarthi/mcp-portfolio-server:latest
             srikanthkarthi/mcp-portfolio-server:${{ steps.version.outputs.version }}
-            srikanthkarthi/mcp-portfolio-server:nodejs-latest
-            srikanthkarthi/mcp-portfolio-server:nodejs-${{ steps.version.outputs.version }}
           platforms: linux/amd64,linux/arm64
 
       - name: "🔨 Build & Push Python Docker Image"
+        id: python_dockerhub_push
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -247,6 +272,7 @@ jobs:
           platforms: linux/amd64,linux/arm64
 
       - name: "🔨 Build & Push Multi-Runtime Docker Image"
+        id: multi_dockerhub_push
         uses: docker/build-push-action@v5
         with:
           context: .
