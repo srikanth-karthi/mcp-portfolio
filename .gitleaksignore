@@ -1,0 +1,6 @@
+# Gitleaks Ignore File
+# Add false positives or intentional secrets here
+
+# Example patterns to ignore:
+# package-lock.json:npm-signature
+# docs/example.md:generic-api-key

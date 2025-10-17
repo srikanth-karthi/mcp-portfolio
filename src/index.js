@@ -35,14 +35,14 @@ class PortfolioMCPServer {
 
   loadPortfolioData() {
     try {
-      // Try multiple possible paths for the data file
+      // Try multiple possible paths for db/sample-data.json
       const possiblePaths = [
         process.env.DATA_PATH || '/app/db/sample-data.json',
         join(__dirname, '../db/sample-data.json'),
         join(__dirname, '../../db/sample-data.json'),
-        './db/sample-data.json'
+        'db/sample-data.json'
       ];
-      
+
       let dataPath = null;
       for (const path of possiblePaths) {
         try {
@@ -53,11 +53,11 @@ class PortfolioMCPServer {
           // Continue to next path
         }
       }
-      
+
       if (!dataPath) {
-        throw new Error('No portfolio data file found in any expected location');
+        throw new Error('No portfolio data file found at db/sample-data.json in any expected location');
       }
-      
+
       const rawData = readFileSync(dataPath, 'utf-8');
       this.portfolioData = JSON.parse(rawData);
       console.error(`Portfolio data loaded from: ${dataPath}`);

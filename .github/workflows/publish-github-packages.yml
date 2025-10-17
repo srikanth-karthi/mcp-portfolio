@@ -11,7 +11,7 @@ on:
         required: true
         default: '1.0.0'
 
-# ✅ Added global permissions for attestations
+
 permissions:
   contents: write
   packages: write
@@ -23,9 +23,80 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  gitleaks-scan:
+    name: "🔒 Gitleaks - Secret Detection"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          args: detect --source . --exit-code 1 --redact
+
+  sonarcloud:
+    name: "📊 SonarCloud - Code Quality & Security"
+    runs-on: ubuntu-latest
+    steps:
+      - name: "🔄 Checkout Repository"
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: "⚙️ Setup Node.js"
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: "📥 Install Dependencies"
+        run: npm ci
+
+      - name: "🧪 Run Tests with Coverage"
+        id: tests
+        run: |
+          npm run test:coverage || {
+            echo "Tests failed but continuing for SonarCloud analysis"
+            exit 0
+          }
+        continue-on-error: true
+
+      - name: "📤 Upload Coverage to Artifacts"
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-sonar
+          path: coverage/
+          retention-days: 7
+
+      - name: "📊 SonarCloud Scan"
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        continue-on-error: true
+
+  trivy_fs_scan:
+    runs-on: ubuntu-latest
+    needs: gitleaks-scan
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: table
+          ignore-unfixed: true
+          vuln-type: os,library
+          severity: CRITICAL,HIGH
+
+
   publish-npm-github-registry:
     name: "📦 Publish NPM Package to GitHub Registry"
     runs-on: ubuntu-latest
+    needs: [trivy_fs_scan, sonarcloud]
     permissions:
       contents: read
       packages: write
@@ -77,6 +148,7 @@ jobs:
   publish-npm-public-registry:
     name: "📦 Publish NPM Package to Public Registry"
     runs-on: ubuntu-latest
+    needs: [trivy_fs_scan, sonarcloud]
     permissions:
       contents: read
     steps:
@@ -136,6 +208,7 @@ jobs:
   publish-python-pypi-registry:
     name: "🐍 Publish Python Package to PyPI"
     runs-on: ubuntu-latest
+    needs: [trivy_fs_scan, sonarcloud]
     permissions:
       id-token: write
       contents: read
@@ -182,6 +255,7 @@ jobs:
   publish-docker-github-container-registry:
     name: "🐳 Publish Docker Images to GitHub Container Registry"
     runs-on: ubuntu-latest
+    needs: [trivy_fs_scan, sonarcloud]
     permissions:
       contents: read
       packages: write
@@ -270,8 +344,9 @@ jobs:
   publish-docker-hub-registry:
     name: "🐳 Publish Docker Images to Docker Hub"
     runs-on: ubuntu-latest
+    needs: [trivy_fs_scan, sonarcloud]
     permissions:
-      id-token: write  
+      id-token: write
       contents: read
     steps:
       - name: "🔄 Checkout Repository"
@@ -330,3 +405,63 @@ jobs:
             srikanthkarthi/mcp-portfolio-server:multi-latest
             srikanthkarthi/mcp-portfolio-server:multi-${{ steps.version.outputs.version }}
           platforms: linux/amd64,linux/arm64
+
+  trivy_image_scan:
+    name: "🛡️ Trivy - Scan Published Docker Images"
+    runs-on: ubuntu-latest
+    needs: [publish-docker-github-container-registry, publish-docker-hub-registry]
+    strategy:
+      matrix:
+        registry: [ghcr, dockerhub]
+        target: [nodejs, python, multi]
+    steps:
+      - name: "🔄 Checkout Repository"
+        uses: actions/checkout@v4
+
+      - name: "🔑 Login to GitHub Container Registry"
+        if: matrix.registry == 'ghcr'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: "🔑 Login to Docker Hub"
+        if: matrix.registry == 'dockerhub'
+        uses: docker/login-action@v3
+        with:
+          username: srikanthkarthi
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+      - name: "🏷️ Extract Version"
+        id: version
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: "🔍 Run Trivy Image Scan - GHCR ${{ matrix.target }}"
+        if: matrix.registry == 'ghcr'
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: image
+          image-ref: ghcr.io/${{ github.repository_owner }}/mcp-portfolio-server:${{ matrix.target == 'nodejs' && 'latest' || format('{0}-latest', matrix.target) }}
+          format: table
+          exit-code: '0'
+          ignore-unfixed: true
+          vuln-type: os,library
+          severity: CRITICAL,HIGH
+
+      - name: "🔍 Run Trivy Image Scan - Docker Hub ${{ matrix.target }}"
+        if: matrix.registry == 'dockerhub'
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: image
+          image-ref: srikanthkarthi/mcp-portfolio-server:${{ matrix.target == 'nodejs' && 'latest' || format('{0}-latest', matrix.target) }}
+          format: table
+          exit-code: '0'
+          ignore-unfixed: true
+          vuln-type: os,library
+          severity: CRITICAL,HIGH

@@ -10,7 +10,7 @@ services:
     restart: unless-stopped
     environment:
       - NODE_ENV=production
-      - DATA_PATH=/app/sample-data.json
+      - DATA_PATH=/app/db/sample-data.json
     stdin_open: true
     tty: true
     networks:
@@ -40,7 +40,7 @@ services:
     environment:
       - NODE_ENV=production
       - PYTHONUNBUFFERED=1
-      - DATA_PATH=/app/sample-data.json
+      - DATA_PATH=/app/db/sample-data.json
     stdin_open: true
     tty: true
     networks:

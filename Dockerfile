@@ -13,9 +13,9 @@ COPY package*.json ./
 # Install dependencies
 RUN npm ci --only=production
 
-# Copy source code
+# Copy source code and data
 COPY src/index.js ./src/
-COPY sample-data.json ./
+COPY db/sample-data.json ./db/
 
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs && \
@@ -40,7 +40,7 @@ WORKDIR /app
 COPY pyproject.toml ./
 COPY README.md ./
 COPY src/mcp_portfolio_server/ ./src/mcp_portfolio_server/
-COPY sample-data.json ./
+COPY db/sample-data.json ./db/
 
 # Install Python dependencies
 RUN pip install --no-cache-dir -e .
@@ -78,7 +78,7 @@ COPY package*.json ./
 COPY pyproject.toml ./
 COPY README.md ./
 COPY src/ ./src/
-COPY sample-data.json ./
+COPY db/sample-data.json ./db/
 
 # Install dependencies for both runtimes
 RUN npm ci --only=production
