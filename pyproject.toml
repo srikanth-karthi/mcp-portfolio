@@ -1,6 +1,6 @@
 [project]
 name = "srikanth-mcp-portfolio"
-version = "1.2.0"
+version = "1.4.0"
 description = "MCP server for Srikanth's portfolio data"
 authors = [
     {name = "Srikanth Karthikeyan", email = "srikanthkarthi2003@gmail.com"}
