@@ -95,6 +95,7 @@ jobs:
         continue-on-error: true
 
   trivy_fs_scan:
+    name: "🛡️ Trivy - Filesystem Vulnerability Scan"
     runs-on: ubuntu-latest
     needs: gitleaks-scan
     steps:
@@ -807,4 +808,4 @@ jobs:
         with:
           name: security-report
           path: security-report.md
-          retention-days: 365
+          retention-days: 90
