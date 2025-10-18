@@ -27,7 +27,7 @@ jobs:
     name: "🔒 Gitleaks - Secret Detection"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
       - uses: gitleaks/gitleaks-action@v2
@@ -43,7 +43,7 @@ jobs:
       pull-requests: write
     steps:
       - name: "🔄 Checkout Repository"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: "🧪 Dependency Review"
         uses: actions/dependency-review-action@v4
@@ -57,7 +57,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: "🔄 Checkout Repository"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
@@ -99,7 +99,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: gitleaks-scan
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: aquasecurity/trivy-action@0.33.1
         with:
           scan-type: fs
@@ -117,7 +117,7 @@ jobs:
       contents: write
     steps:
       - name: "🔄 Checkout Repository"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: "🧾 Generate SBOM"
         uses: anchore/sbom-action@v0
@@ -141,7 +141,7 @@ jobs:
       contents: read
     steps:
       - name: "🔄 Checkout Repository"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: "📥 Download SBOM Artifact"
         uses: actions/download-artifact@v4
@@ -186,7 +186,7 @@ jobs:
       packages: write
     steps:
       - name: "🔄 Checkout Repository"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: "⚙️ Setup Node.js with GitHub Registry"
         uses: actions/setup-node@v4
@@ -268,7 +268,7 @@ jobs:
       contents: read
     steps:
       - name: "🔄 Checkout Repository"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: "⚙️ Setup Node.js with Public Registry"
         uses: actions/setup-node@v4
@@ -329,7 +329,7 @@ jobs:
       contents: read
     steps:
       - name: "🔄 Checkout Repository"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: "🐍 Setup Python Environment"
         uses: actions/setup-python@v6
@@ -397,7 +397,7 @@ jobs:
       attestations: write
     steps:
       - name: "🔄 Checkout Repository"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: "🔧 Setup Docker Buildx"
         uses: docker/setup-buildx-action@v3
@@ -553,7 +553,7 @@ jobs:
       contents: read
     steps:
       - name: "🔄 Checkout Repository"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: "🔧 Setup Docker Buildx"
         uses: docker/setup-buildx-action@v3
@@ -671,7 +671,7 @@ jobs:
         target: [nodejs, python, multi]
     steps:
       - name: "🔄 Checkout Repository"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: "🔑 Login to GitHub Container Registry"
         if: matrix.registry == 'ghcr'
@@ -731,7 +731,7 @@ jobs:
       attestations: read
     steps:
       - name: "🔄 Checkout Repository"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: "🏷️ Extract Version from Git Tag or Input"
         id: version
