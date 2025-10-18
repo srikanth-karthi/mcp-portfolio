@@ -99,7 +99,7 @@ jobs:
     needs: gitleaks-scan
     steps:
       - uses: actions/checkout@v4
-      - uses: aquasecurity/trivy-action@0.28.0
+      - uses: aquasecurity/trivy-action@0.33.1
         with:
           scan-type: fs
           scan-ref: .
@@ -698,7 +698,7 @@ jobs:
 
       - name: "🔍 Run Trivy Image Scan - GHCR ${{ matrix.target }}"
         if: matrix.registry == 'ghcr'
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@0.33.1
         with:
           scan-type: image
           image-ref: ghcr.io/${{ github.repository_owner }}/mcp-portfolio-server:${{ matrix.target == 'nodejs' && 'latest' || format('{0}-latest', matrix.target) }}
@@ -710,7 +710,7 @@ jobs:
 
       - name: "🔍 Run Trivy Image Scan - Docker Hub ${{ matrix.target }}"
         if: matrix.registry == 'dockerhub'
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@0.33.1
         with:
           scan-type: image
           image-ref: srikanthkarthi/mcp-portfolio-server:${{ matrix.target == 'nodejs' && 'latest' || format('{0}-latest', matrix.target) }}
