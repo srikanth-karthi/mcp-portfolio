@@ -10,6 +10,13 @@ import {
 import { readFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import {
+  searchPortfolio,
+  getPortfolioCategories,
+  getPortfolioItem,
+  getContactInfo,
+  getTechStack
+} from './portfolio-tools.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -149,15 +156,15 @@ class PortfolioMCPServer {
       try {
         switch (name) {
           case 'search_portfolio':
-            return await this.searchPortfolio(args);
+            return await searchPortfolio(this.portfolioData, args);
           case 'get_portfolio_categories':
-            return await this.getPortfolioCategories();
+            return await getPortfolioCategories(this.portfolioData);
           case 'get_portfolio_item':
-            return await this.getPortfolioItem(args);
+            return await getPortfolioItem(this.portfolioData, args);
           case 'get_contact_info':
-            return await this.getContactInfo();
+            return await getContactInfo(this.portfolioData);
           case 'get_tech_stack':
-            return await this.getTechStack(args);
+            return await getTechStack(this.portfolioData, args);
           default:
             throw new McpError(
               ErrorCode.MethodNotFound,
@@ -171,119 +178,6 @@ class PortfolioMCPServer {
         );
       }
     });
-  }
-
-  async searchPortfolio(args) {
-    const { query, category, limit = 10 } = args;
-    const searchTerm = query.toLowerCase();
-    
-    let results = this.portfolioData.filter(item => {
-      // Filter by category if specified
-      if (category && item.category.toLowerCase() !== category.toLowerCase()) {
-        return false;
-      }
-      
-      // Search in title, description, and keywords
-      const searchableText = [
-        item.title,
-        item.description,
-        ...item.keywords
-      ].join(' ').toLowerCase();
-      
-      return searchableText.includes(searchTerm);
-    });
-
-    // Limit results
-    results = results.slice(0, limit);
-
-    return {
-      content: [
-        {
-          type: 'text',
-          text: JSON.stringify({
-            query: query,
-            category: category || 'all',
-            resultsCount: results.length,
-            results: results
-          }, null, 2)
-        }
-      ]
-    };
-  }
-
-  async getPortfolioCategories() {
-    const categories = [...new Set(this.portfolioData.map(item => item.category))];
-    
-    return {
-      content: [
-        {
-          type: 'text',
-          text: JSON.stringify({
-            categories: categories,
-            totalItems: this.portfolioData.length
-          }, null, 2)
-        }
-      ]
-    };
-  }
-
-  async getPortfolioItem(args) {
-    const { id } = args;
-    const item = this.portfolioData.find(item => item.id === id);
-    
-    if (!item) {
-      throw new McpError(
-        ErrorCode.InvalidRequest,
-        `Portfolio item with ID ${id} not found`
-      );
-    }
-
-    return {
-      content: [
-        {
-          type: 'text',
-          text: JSON.stringify(item, null, 2)
-        }
-      ]
-    };
-  }
-
-  async getContactInfo() {
-    const contactItems = this.portfolioData.filter(item => item.category === 'Contact');
-    
-    return {
-      content: [
-        {
-          type: 'text',
-          text: JSON.stringify({
-            contact: contactItems
-          }, null, 2)
-        }
-      ]
-    };
-  }
-
-  async getTechStack(args) {
-    const { type } = args;
-    let techItems = this.portfolioData.filter(item => item.category === 'Tech Stack');
-    
-    if (type) {
-      techItems = techItems.filter(item => 
-        item.title.toLowerCase().includes(type.toLowerCase())
-      );
-    }
-    
-    return {
-      content: [
-        {
-          type: 'text',
-          text: JSON.stringify({
-            techStack: techItems,
-            filterType: type || 'all'
-          }, null, 2)
-        }
-      ]
-    };
   }
 
   async run() {

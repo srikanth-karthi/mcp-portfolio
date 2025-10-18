@@ -1,58 +1,17 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { mockPortfolioData } from '../fixtures/portfolio-data.js';
-
-// Create a mock server class for testing
-class MockPortfolioServer {
-  constructor(data) {
-    this.portfolioData = data;
-  }
-
-  async searchPortfolio(args) {
-    const { query, category, limit = 10 } = args;
-    const searchTerm = query.toLowerCase();
-
-    let results = this.portfolioData.filter(item => {
-      if (category && item.category.toLowerCase() !== category.toLowerCase()) {
-        return false;
-      }
-
-      const searchableText = [
-        item.title,
-        item.description,
-        ...item.keywords
-      ].join(' ').toLowerCase();
-
-      return searchableText.includes(searchTerm);
-    });
-
-    results = results.slice(0, limit);
-
-    return {
-      content: [
-        {
-          type: 'text',
-          text: JSON.stringify({
-            query: query,
-            category: category || 'all',
-            resultsCount: results.length,
-            results: results
-          }, null, 2)
-        }
-      ]
-    };
-  }
-}
+import { searchPortfolio } from '../../src/portfolio-tools.js';
 
 describe('Search Portfolio Functionality', () => {
-  let server;
+  let portfolioData;
 
   beforeEach(() => {
-    server = new MockPortfolioServer(mockPortfolioData);
+    portfolioData = mockPortfolioData;
   });
 
   describe('Basic search functionality', () => {
     it('should return results matching the search query', async () => {
-      const result = await server.searchPortfolio({ query: 'cloud' });
+      const result = await searchPortfolio(portfolioData, { query: 'cloud' });
       const parsedResult = JSON.parse(result.content[0].text);
 
       expect(parsedResult.resultsCount).toBeGreaterThan(0);
@@ -61,7 +20,7 @@ describe('Search Portfolio Functionality', () => {
     });
 
     it('should search in title, description, and keywords', async () => {
-      const result = await server.searchPortfolio({ query: 'devops' });
+      const result = await searchPortfolio(portfolioData, { query: 'devops' });
       const parsedResult = JSON.parse(result.content[0].text);
 
       expect(parsedResult.resultsCount).toBeGreaterThan(0);
@@ -76,7 +35,7 @@ describe('Search Portfolio Functionality', () => {
     });
 
     it('should return empty results for non-existent terms', async () => {
-      const result = await server.searchPortfolio({ query: 'nonexistentterm123' });
+      const result = await searchPortfolio(portfolioData, { query: 'nonexistentterm123' });
       const parsedResult = JSON.parse(result.content[0].text);
 
       expect(parsedResult.resultsCount).toBe(0);
@@ -84,9 +43,9 @@ describe('Search Portfolio Functionality', () => {
     });
 
     it('should be case-insensitive', async () => {
-      const result1 = await server.searchPortfolio({ query: 'CLOUD' });
-      const result2 = await server.searchPortfolio({ query: 'cloud' });
-      const result3 = await server.searchPortfolio({ query: 'Cloud' });
+      const result1 = await searchPortfolio(portfolioData, { query: 'CLOUD' });
+      const result2 = await searchPortfolio(portfolioData, { query: 'cloud' });
+      const result3 = await searchPortfolio(portfolioData, { query: 'Cloud' });
 
       const parsed1 = JSON.parse(result1.content[0].text);
       const parsed2 = JSON.parse(result2.content[0].text);
@@ -99,7 +58,7 @@ describe('Search Portfolio Functionality', () => {
 
   describe('Category filtering', () => {
     it('should filter results by category', async () => {
-      const result = await server.searchPortfolio({
+      const result = await searchPortfolio(portfolioData, {
         query: 'test',
         category: 'Contact'
       });
@@ -111,11 +70,11 @@ describe('Search Portfolio Functionality', () => {
     });
 
     it('should be case-insensitive for category filtering', async () => {
-      const result1 = await server.searchPortfolio({
+      const result1 = await searchPortfolio(portfolioData, {
         query: '',
         category: 'CONTACT'
       });
-      const result2 = await server.searchPortfolio({
+      const result2 = await searchPortfolio(portfolioData, {
         query: '',
         category: 'contact'
       });
@@ -127,7 +86,7 @@ describe('Search Portfolio Functionality', () => {
     });
 
     it('should return empty results for non-existent category', async () => {
-      const result = await server.searchPortfolio({
+      const result = await searchPortfolio(portfolioData, {
         query: 'test',
         category: 'NonExistentCategory'
       });
@@ -137,7 +96,7 @@ describe('Search Portfolio Functionality', () => {
     });
 
     it('should combine query and category filters correctly', async () => {
-      const result = await server.searchPortfolio({
+      const result = await searchPortfolio(portfolioData, {
         query: 'aws',
         category: 'Tech Stack'
       });
@@ -157,28 +116,28 @@ describe('Search Portfolio Functionality', () => {
 
   describe('Result limiting', () => {
     it('should respect default limit of 10', async () => {
-      const result = await server.searchPortfolio({ query: 'test' });
+      const result = await searchPortfolio(portfolioData, { query: 'test' });
       const parsedResult = JSON.parse(result.content[0].text);
 
       expect(parsedResult.results.length).toBeLessThanOrEqual(10);
     });
 
     it('should respect custom limit parameter', async () => {
-      const result = await server.searchPortfolio({ query: 'test', limit: 3 });
+      const result = await searchPortfolio(portfolioData, { query: 'test', limit: 3 });
       const parsedResult = JSON.parse(result.content[0].text);
 
       expect(parsedResult.results.length).toBeLessThanOrEqual(3);
     });
 
     it('should handle limit of 0', async () => {
-      const result = await server.searchPortfolio({ query: 'test', limit: 0 });
+      const result = await searchPortfolio(portfolioData, { query: 'test', limit: 0 });
       const parsedResult = JSON.parse(result.content[0].text);
 
       expect(parsedResult.results).toEqual([]);
     });
 
     it('should handle limit larger than results', async () => {
-      const result = await server.searchPortfolio({ query: 'cloud', limit: 1000 });
+      const result = await searchPortfolio(portfolioData, { query: 'cloud', limit: 1000 });
       const parsedResult = JSON.parse(result.content[0].text);
 
       expect(parsedResult.results.length).toBeLessThanOrEqual(1000);
@@ -187,7 +146,7 @@ describe('Search Portfolio Functionality', () => {
 
   describe('Response format', () => {
     it('should return correct response structure', async () => {
-      const result = await server.searchPortfolio({ query: 'test' });
+      const result = await searchPortfolio(portfolioData, { query: 'test' });
 
       expect(result).toHaveProperty('content');
       expect(Array.isArray(result.content)).toBe(true);
@@ -197,15 +156,15 @@ describe('Search Portfolio Functionality', () => {
 
     it('should include query in response', async () => {
       const query = 'cloud';
-      const result = await server.searchPortfolio({ query });
+      const result = await searchPortfolio(portfolioData, { query });
       const parsedResult = JSON.parse(result.content[0].text);
 
       expect(parsedResult.query).toBe(query);
     });
 
     it('should include category in response (or "all" if not specified)', async () => {
-      const result1 = await server.searchPortfolio({ query: 'test' });
-      const result2 = await server.searchPortfolio({ query: 'test', category: 'Contact' });
+      const result1 = await searchPortfolio(portfolioData, { query: 'test' });
+      const result2 = await searchPortfolio(portfolioData, { query: 'test', category: 'Contact' });
 
       const parsed1 = JSON.parse(result1.content[0].text);
       const parsed2 = JSON.parse(result2.content[0].text);
@@ -215,7 +174,7 @@ describe('Search Portfolio Functionality', () => {
     });
 
     it('should include resultsCount in response', async () => {
-      const result = await server.searchPortfolio({ query: 'test' });
+      const result = await searchPortfolio(portfolioData, { query: 'test' });
       const parsedResult = JSON.parse(result.content[0].text);
 
       expect(parsedResult).toHaveProperty('resultsCount');
@@ -226,29 +185,28 @@ describe('Search Portfolio Functionality', () => {
 
   describe('Edge cases', () => {
     it('should handle empty query string', async () => {
-      const result = await server.searchPortfolio({ query: '' });
+      const result = await searchPortfolio(portfolioData, { query: '' });
       const parsedResult = JSON.parse(result.content[0].text);
 
       expect(parsedResult.results.length).toBeGreaterThan(0);
     });
 
     it('should handle special characters in query', async () => {
-      const result = await server.searchPortfolio({ query: '@#$%' });
+      const result = await searchPortfolio(portfolioData, { query: '@#$%' });
       const parsedResult = JSON.parse(result.content[0].text);
 
       expect(parsedResult.resultsCount).toBeGreaterThanOrEqual(0);
     });
 
     it('should handle whitespace in query', async () => {
-      const result = await server.searchPortfolio({ query: '   cloud   ' });
+      const result = await searchPortfolio(portfolioData, { query: '   cloud   ' });
       const parsedResult = JSON.parse(result.content[0].text);
 
       expect(parsedResult.query).toBe('   cloud   ');
     });
 
     it('should handle empty portfolio data', async () => {
-      const emptyServer = new MockPortfolioServer([]);
-      const result = await emptyServer.searchPortfolio({ query: 'test' });
+      const result = await searchPortfolio([], { query: 'test' });
       const parsedResult = JSON.parse(result.content[0].text);
 
       expect(parsedResult.resultsCount).toBe(0);

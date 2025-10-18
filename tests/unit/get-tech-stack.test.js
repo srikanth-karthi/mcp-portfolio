@@ -1,46 +1,17 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { mockPortfolioData } from '../fixtures/portfolio-data.js';
-
-// Create a mock server class for testing
-class MockPortfolioServer {
-  constructor(data) {
-    this.portfolioData = data;
-  }
-
-  async getTechStack(args) {
-    const { type } = args;
-    let techItems = this.portfolioData.filter(item => item.category === 'Tech Stack');
-
-    if (type) {
-      techItems = techItems.filter(item =>
-        item.title.toLowerCase().includes(type.toLowerCase())
-      );
-    }
-
-    return {
-      content: [
-        {
-          type: 'text',
-          text: JSON.stringify({
-            techStack: techItems,
-            filterType: type || 'all'
-          }, null, 2)
-        }
-      ]
-    };
-  }
-}
+import { getTechStack } from '../../src/portfolio-tools.js';
 
 describe('Get Tech Stack Functionality', () => {
-  let server;
+  let portfolioData;
 
   beforeEach(() => {
-    server = new MockPortfolioServer(mockPortfolioData);
+    portfolioData = mockPortfolioData;
   });
 
   describe('Basic functionality without filter', () => {
     it('should return all tech stack items when no type filter is provided', async () => {
-      const result = await server.getTechStack({});
+      const result = await getTechStack(portfolioData, {});
       const parsedResult = JSON.parse(result.content[0].text);
 
       expect(parsedResult.techStack).toBeDefined();
@@ -48,7 +19,7 @@ describe('Get Tech Stack Functionality', () => {
     });
 
     it('should only return items with Tech Stack category', async () => {
-      const result = await server.getTechStack({});
+      const result = await getTechStack(portfolioData, {});
       const parsedResult = JSON.parse(result.content[0].text);
 
       parsedResult.techStack.forEach(item => {
@@ -57,7 +28,7 @@ describe('Get Tech Stack Functionality', () => {
     });
 
     it('should return expected number of tech stack items', async () => {
-      const result = await server.getTechStack({});
+      const result = await getTechStack(portfolioData, {});
       const parsedResult = JSON.parse(result.content[0].text);
 
       const expectedTechCount = mockPortfolioData.filter(
@@ -68,14 +39,14 @@ describe('Get Tech Stack Functionality', () => {
     });
 
     it('should set filterType to "all" when no type is provided', async () => {
-      const result = await server.getTechStack({});
+      const result = await getTechStack(portfolioData, {});
       const parsedResult = JSON.parse(result.content[0].text);
 
       expect(parsedResult.filterType).toBe('all');
     });
 
     it('should include all tech item properties', async () => {
-      const result = await server.getTechStack({});
+      const result = await getTechStack(portfolioData, {});
       const parsedResult = JSON.parse(result.content[0].text);
 
       if (parsedResult.techStack.length > 0) {
@@ -92,7 +63,7 @@ describe('Get Tech Stack Functionality', () => {
 
   describe('Type filtering', () => {
     it('should filter by type when provided', async () => {
-      const result = await server.getTechStack({ type: 'programming' });
+      const result = await getTechStack(portfolioData, { type: 'programming' });
       const parsedResult = JSON.parse(result.content[0].text);
 
       parsedResult.techStack.forEach(item => {
@@ -101,9 +72,9 @@ describe('Get Tech Stack Functionality', () => {
     });
 
     it('should be case-insensitive for type filtering', async () => {
-      const result1 = await server.getTechStack({ type: 'CLOUD' });
-      const result2 = await server.getTechStack({ type: 'cloud' });
-      const result3 = await server.getTechStack({ type: 'Cloud' });
+      const result1 = await getTechStack(portfolioData, { type: 'CLOUD' });
+      const result2 = await getTechStack(portfolioData, { type: 'cloud' });
+      const result3 = await getTechStack(portfolioData, { type: 'Cloud' });
 
       const parsed1 = JSON.parse(result1.content[0].text);
       const parsed2 = JSON.parse(result2.content[0].text);
@@ -115,21 +86,21 @@ describe('Get Tech Stack Functionality', () => {
 
     it('should include filterType in response when type is provided', async () => {
       const typeFilter = 'cloud';
-      const result = await server.getTechStack({ type: typeFilter });
+      const result = await getTechStack(portfolioData, { type: typeFilter });
       const parsedResult = JSON.parse(result.content[0].text);
 
       expect(parsedResult.filterType).toBe(typeFilter);
     });
 
     it('should return empty array for non-matching type', async () => {
-      const result = await server.getTechStack({ type: 'nonexistenttype123' });
+      const result = await getTechStack(portfolioData, { type: 'nonexistenttype123' });
       const parsedResult = JSON.parse(result.content[0].text);
 
       expect(parsedResult.techStack).toEqual([]);
     });
 
     it('should filter only within Tech Stack category', async () => {
-      const result = await server.getTechStack({ type: 'programming' });
+      const result = await getTechStack(portfolioData, { type: 'programming' });
       const parsedResult = JSON.parse(result.content[0].text);
 
       parsedResult.techStack.forEach(item => {
@@ -138,7 +109,7 @@ describe('Get Tech Stack Functionality', () => {
     });
 
     it('should handle partial matches in title', async () => {
-      const result = await server.getTechStack({ type: 'lang' });
+      const result = await getTechStack(portfolioData, { type: 'lang' });
       const parsedResult = JSON.parse(result.content[0].text);
 
       parsedResult.techStack.forEach(item => {
@@ -149,7 +120,7 @@ describe('Get Tech Stack Functionality', () => {
 
   describe('Response format', () => {
     it('should return correct response structure', async () => {
-      const result = await server.getTechStack({});
+      const result = await getTechStack(portfolioData, {});
 
       expect(result).toHaveProperty('content');
       expect(Array.isArray(result.content)).toBe(true);
@@ -158,7 +129,7 @@ describe('Get Tech Stack Functionality', () => {
     });
 
     it('should return valid JSON in text field', async () => {
-      const result = await server.getTechStack({});
+      const result = await getTechStack(portfolioData, {});
 
       expect(() => {
         JSON.parse(result.content[0].text);
@@ -166,7 +137,7 @@ describe('Get Tech Stack Functionality', () => {
     });
 
     it('should include both techStack and filterType fields', async () => {
-      const result = await server.getTechStack({});
+      const result = await getTechStack(portfolioData, {});
       const parsedResult = JSON.parse(result.content[0].text);
 
       expect(Object.keys(parsedResult)).toContain('techStack');
@@ -176,8 +147,8 @@ describe('Get Tech Stack Functionality', () => {
 
   describe('Edge cases', () => {
     it('should handle empty portfolio data', async () => {
-      const emptyServer = new MockPortfolioServer([]);
-      const result = await emptyServer.getTechStack({});
+      const emptyPortfolioData = [];
+      const result = await getTechStack(emptyPortfolioData, {});
       const parsedResult = JSON.parse(result.content[0].text);
 
       expect(parsedResult.techStack).toEqual([]);
@@ -185,16 +156,15 @@ describe('Get Tech Stack Functionality', () => {
 
     it('should handle portfolio with no tech stack items', async () => {
       const noTechData = mockPortfolioData.filter(item => item.category !== 'Tech Stack');
-      const noTechServer = new MockPortfolioServer(noTechData);
 
-      const result = await noTechServer.getTechStack({});
+      const result = await getTechStack(noTechData, {});
       const parsedResult = JSON.parse(result.content[0].text);
 
       expect(parsedResult.techStack).toEqual([]);
     });
 
     it('should handle empty type string', async () => {
-      const result = await server.getTechStack({ type: '' });
+      const result = await getTechStack(portfolioData, { type: '' });
       const parsedResult = JSON.parse(result.content[0].text);
 
       // Empty string should match all items (all titles contain empty string)
@@ -203,14 +173,14 @@ describe('Get Tech Stack Functionality', () => {
     });
 
     it('should handle special characters in type', async () => {
-      const result = await server.getTechStack({ type: '@#$%' });
+      const result = await getTechStack(portfolioData, { type: '@#$%' });
       const parsedResult = JSON.parse(result.content[0].text);
 
       expect(parsedResult.techStack).toEqual([]);
     });
 
     it('should handle whitespace in type', async () => {
-      const result = await server.getTechStack({ type: '   programming   ' });
+      const result = await getTechStack(portfolioData, { type: '   programming   ' });
       const parsedResult = JSON.parse(result.content[0].text);
 
       // Should still filter (whitespace is part of the search)
@@ -218,7 +188,7 @@ describe('Get Tech Stack Functionality', () => {
     });
 
     it('should handle undefined type (no args.type)', async () => {
-      const result = await server.getTechStack({});
+      const result = await getTechStack(portfolioData, {});
       const parsedResult = JSON.parse(result.content[0].text);
 
       expect(parsedResult.filterType).toBe('all');
@@ -228,18 +198,18 @@ describe('Get Tech Stack Functionality', () => {
 
   describe('Data integrity', () => {
     it('should not modify original portfolio data', async () => {
-      const originalLength = server.portfolioData.length;
-      const originalData = JSON.parse(JSON.stringify(server.portfolioData));
+      const originalLength = portfolioData.length;
+      const originalData = JSON.parse(JSON.stringify(portfolioData));
 
-      await server.getTechStack({});
+      await getTechStack(portfolioData, {});
 
-      expect(server.portfolioData.length).toBe(originalLength);
-      expect(server.portfolioData).toEqual(originalData);
+      expect(portfolioData.length).toBe(originalLength);
+      expect(portfolioData).toEqual(originalData);
     });
 
     it('should return same data on multiple calls with same filter', async () => {
-      const result1 = await server.getTechStack({ type: 'cloud' });
-      const result2 = await server.getTechStack({ type: 'cloud' });
+      const result1 = await getTechStack(portfolioData, { type: 'cloud' });
+      const result2 = await getTechStack(portfolioData, { type: 'cloud' });
 
       const parsed1 = JSON.parse(result1.content[0].text);
       const parsed2 = JSON.parse(result2.content[0].text);
@@ -248,7 +218,7 @@ describe('Get Tech Stack Functionality', () => {
     });
 
     it('should maintain item order from original data', async () => {
-      const result = await server.getTechStack({});
+      const result = await getTechStack(portfolioData, {});
       const parsedResult = JSON.parse(result.content[0].text);
 
       const originalTechItems = mockPortfolioData.filter(
@@ -261,7 +231,7 @@ describe('Get Tech Stack Functionality', () => {
 
   describe('Category filtering accuracy', () => {
     it('should not include non-Tech Stack items', async () => {
-      const result = await server.getTechStack({});
+      const result = await getTechStack(portfolioData, {});
       const parsedResult = JSON.parse(result.content[0].text);
 
       const nonTechCategories = ['Contact', 'Experience', 'Education', 'Profile Summary'];
@@ -278,8 +248,7 @@ describe('Get Tech Stack Functionality', () => {
         { id: 1000, category: 'TECH STACK', title: 'uppercase', description: '', keywords: [] }
       ];
 
-      const mixedServer = new MockPortfolioServer(mixedCaseData);
-      const result = await mixedServer.getTechStack({});
+      const result = await getTechStack(mixedCaseData, {});
       const parsedResult = JSON.parse(result.content[0].text);
 
       // Should only match exact case 'Tech Stack'
@@ -291,19 +260,19 @@ describe('Get Tech Stack Functionality', () => {
 
   describe('Async behavior', () => {
     it('should be an async function', async () => {
-      const result = server.getTechStack({});
+      const result = getTechStack(portfolioData, {});
       expect(result).toBeInstanceOf(Promise);
       await result;
     });
 
     it('should resolve successfully', async () => {
-      await expect(server.getTechStack({})).resolves.toBeDefined();
+      await expect(getTechStack(portfolioData, {})).resolves.toBeDefined();
     });
   });
 
   describe('Different tech stack types', () => {
     it('should filter Programming Languages correctly', async () => {
-      const result = await server.getTechStack({ type: 'programming' });
+      const result = await getTechStack(portfolioData, { type: 'programming' });
       const parsedResult = JSON.parse(result.content[0].text);
 
       parsedResult.techStack.forEach(item => {
@@ -312,7 +281,7 @@ describe('Get Tech Stack Functionality', () => {
     });
 
     it('should filter Cloud Platforms correctly', async () => {
-      const result = await server.getTechStack({ type: 'cloud' });
+      const result = await getTechStack(portfolioData, { type: 'cloud' });
       const parsedResult = JSON.parse(result.content[0].text);
 
       parsedResult.techStack.forEach(item => {
