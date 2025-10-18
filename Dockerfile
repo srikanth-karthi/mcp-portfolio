@@ -60,7 +60,7 @@ CMD ["python", "-m", "mcp_portfolio_server.server"]
 # =============================================================================
 # Multi-runtime Stage (Both Node.js and Python)
 # =============================================================================
-FROM ubuntu:22.04 AS multi
+FROM ubuntu:24.04 AS multi
 
 # Install Node.js and Python
 RUN apt-get update && apt-get install -y \
