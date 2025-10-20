@@ -198,11 +198,16 @@ jobs:
       # ✅ Check if version exists in GitHub Packages FIRST
       - name: "🔍 Check if Version Already Exists on GitHub Packages"
         id: check_github_npm
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           PACKAGE_VERSION=$(node -p "require('./package.json').version")
           PACKAGE_NAME=$(node -p "require('./package.json').name")
+          echo "Configuring auth for GitHub Packages..."
+          # Configure npm to use the token for the GitHub Packages registry
+          npm config set //npm.pkg.github.com/:_authToken "${NODE_AUTH_TOKEN}"
           echo "Checking ${PACKAGE_NAME}@${PACKAGE_VERSION}..."
-          if npm view ${PACKAGE_NAME}@${PACKAGE_VERSION} --registry=https://npm.pkg.github.com > /dev/null 2>&1; then
+          if npm view "${PACKAGE_NAME}@${PACKAGE_VERSION}" --registry=https://npm.pkg.github.com > /dev/null 2>&1; then
             echo "exists=true" >> $GITHUB_OUTPUT
             echo "Version ${PACKAGE_VERSION} already exists on GitHub Packages."
           else
@@ -252,7 +257,7 @@ jobs:
 
       - name: "🚀 Publish to GitHub Packages"
         if: steps.check_github_npm.outputs.exists == 'false'
-        run: npm publish
+        run: npm publish --registry=https://npm.pkg.github.com
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
