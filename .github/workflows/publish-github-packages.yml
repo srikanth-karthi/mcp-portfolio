@@ -62,7 +62,7 @@ jobs:
           fetch-depth: 0
 
       - name: "⚙️ Setup Node.js"
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '20'
           cache: 'npm'
@@ -189,7 +189,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: "⚙️ Setup Node.js with GitHub Registry"
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '20'
           registry-url: 'https://npm.pkg.github.com'
@@ -276,7 +276,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: "⚙️ Setup Node.js with Public Registry"
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '20'
           registry-url: 'https://registry.npmjs.org'
