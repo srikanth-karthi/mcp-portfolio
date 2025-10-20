@@ -91,6 +91,7 @@ We welcome various types of contributions:
 ## Pull Request Process
 
 1. **Create a branch**: Use a descriptive branch name
+
    ```bash
    git checkout -b feature/your-feature-name
    # or
@@ -100,16 +101,19 @@ We welcome various types of contributions:
 2. **Make your changes**: Follow the coding standards
 
 3. **Test your changes**: Ensure all tests pass
+
    ```bash
    npm test
    ```
 
 4. **Commit your changes**: Write clear commit messages
+
    ```bash
    git commit -m "Add: Brief description of your changes"
    ```
 
 5. **Push to your fork**:
+
    ```bash
    git push origin feature/your-feature-name
    ```
