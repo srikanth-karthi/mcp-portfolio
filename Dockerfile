@@ -43,7 +43,7 @@ COPY src/mcp_portfolio_server/ ./src/mcp_portfolio_server/
 COPY db/sample-data.json ./db/
 
 # Install Python dependencies
-RUN pip install --no-cache-dir -e .
+RUN pip install --no-cache-dir --break-system-packages -e .
 
 # Create non-root user
 RUN addgroup --gid 1001 python && \
@@ -80,16 +80,12 @@ COPY README.md ./
 COPY src/ ./src/
 COPY db/sample-data.json ./db/
 
-# Install dependencies for both runtimes
-RUN npm ci --only=production
-RUN pip3 install --no-cache-dir -e .
-
-# Create non-root user
-RUN addgroup --gid 1001 mcp && \
-    adduser --disabled-password --gecos '' --uid 1001 --gid 1001 mcp
-
-# Change ownership
-RUN chown -R mcp:mcp /app
+# Install dependencies for both runtimes, create non-root user, and set ownership
+RUN npm ci --only=production && \
+    pip3 install --no-cache-dir --break-system-packages -e . && \
+    addgroup --gid 1001 mcp && \
+    adduser --disabled-password --gecos '' --uid 1001 --gid 1001 mcp && \
+    chown -R mcp:mcp /app
 USER mcp
 
 EXPOSE 3000

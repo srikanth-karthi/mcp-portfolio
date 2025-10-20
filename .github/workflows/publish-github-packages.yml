@@ -387,14 +387,12 @@ jobs:
         if: steps.pypi_version_check.outputs.exists == 'true'
         run: echo "Skipping PyPI publish as version already exists"
 
-  publish-docker-github-container-registry:
-    name: "🐳 Publish Docker Images to GitHub Container Registry"
+  publish-docker-nodejs-ghcr:
+    name: "🐳 Publish Node.js Docker Image - GHCR"
     runs-on: ubuntu-latest
     needs: [trivy_fs_scan, sonarcloud, sbom-validation]
     outputs:
-      node_digest: ${{ steps.node_image_push.outputs.digest }}
-      python_digest: ${{ steps.python_image_push.outputs.digest }}
-      multi_digest: ${{ steps.multi_image_push.outputs.digest }}
+      digest: ${{ steps.image_push.outputs.digest }}
     permissions:
       contents: read
       packages: write
@@ -424,7 +422,7 @@ jobs:
           fi
 
       - name: "🔨 Build & Push Node.js Docker Image"
-        id: node_image_push
+        id: image_push
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -435,8 +433,42 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/mcp-portfolio-server:${{ steps.version.outputs.version }}
           platforms: linux/amd64,linux/arm64
 
+  publish-docker-python-ghcr:
+    name: "🐍 Publish Python Docker Image - GHCR"
+    runs-on: ubuntu-latest
+    needs: [trivy_fs_scan, sonarcloud, sbom-validation]
+    outputs:
+      digest: ${{ steps.image_push.outputs.digest }}
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
+    steps:
+      - name: "🔄 Checkout Repository"
+        uses: actions/checkout@v5
+
+      - name: "🔧 Setup Docker Buildx"
+        uses: docker/setup-buildx-action@v3
+
+      - name: "🔑 Login to GitHub Container Registry"
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: "🏷️ Extract Version from Git Tag or Input"
+        id: version
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+          fi
+
       - name: "🔨 Build & Push Python Docker Image"
-        id: python_image_push
+        id: image_push
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -447,8 +479,42 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/mcp-portfolio-server:python-${{ steps.version.outputs.version }}
           platforms: linux/amd64,linux/arm64
 
+  publish-docker-multi-ghcr:
+    name: "🔧 Publish Multi-Runtime Docker Image - GHCR"
+    runs-on: ubuntu-latest
+    needs: [trivy_fs_scan, sonarcloud, sbom-validation]
+    outputs:
+      digest: ${{ steps.image_push.outputs.digest }}
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
+    steps:
+      - name: "🔄 Checkout Repository"
+        uses: actions/checkout@v5
+
+      - name: "🔧 Setup Docker Buildx"
+        uses: docker/setup-buildx-action@v3
+
+      - name: "🔑 Login to GitHub Container Registry"
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: "🏷️ Extract Version from Git Tag or Input"
+        id: version
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+          fi
+
       - name: "🔨 Build & Push Multi-Runtime Docker Image"
-        id: multi_image_push
+        id: image_push
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -462,7 +528,7 @@ jobs:
   generate-build-provenance-ghcr:
     name: "🔐 Generate Build Provenance - GHCR"
     runs-on: ubuntu-latest
-    needs: publish-docker-github-container-registry
+    needs: [publish-docker-nodejs-ghcr, publish-docker-python-ghcr, publish-docker-multi-ghcr]
     permissions:
       id-token: write
       attestations: write
@@ -479,21 +545,21 @@ jobs:
         uses: actions/attest-build-provenance@v1
         with:
           subject-name: ghcr.io/${{ github.repository_owner }}/mcp-portfolio-server
-          subject-digest: ${{ needs.publish-docker-github-container-registry.outputs.node_digest }}
+          subject-digest: ${{ needs.publish-docker-nodejs-ghcr.outputs.digest }}
           push-to-registry: true
 
       - name: "🔐 Generate Provenance for Python Image"
         uses: actions/attest-build-provenance@v1
         with:
           subject-name: ghcr.io/${{ github.repository_owner }}/mcp-portfolio-server
-          subject-digest: ${{ needs.publish-docker-github-container-registry.outputs.python_digest }}
+          subject-digest: ${{ needs.publish-docker-python-ghcr.outputs.digest }}
           push-to-registry: true
 
       - name: "🔐 Generate Provenance for Multi-Runtime Image"
         uses: actions/attest-build-provenance@v1
         with:
           subject-name: ghcr.io/${{ github.repository_owner }}/mcp-portfolio-server
-          subject-digest: ${{ needs.publish-docker-github-container-registry.outputs.multi_digest }}
+          subject-digest: ${{ needs.publish-docker-multi-ghcr.outputs.digest }}
           push-to-registry: true
 
   sign-containers-ghcr:
@@ -549,8 +615,8 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/mcp-portfolio-server:multi-latest \
             ghcr.io/${{ github.repository_owner }}/mcp-portfolio-server:multi-${{ steps.version.outputs.version }}
 
-  publish-docker-hub-registry:
-    name: "🐳 Publish Docker Images to Docker Hub"
+  publish-docker-nodejs-dockerhub:
+    name: "🐳 Publish Node.js Docker Image - Docker Hub"
     runs-on: ubuntu-latest
     needs: [trivy_fs_scan, sonarcloud, sbom-validation]
     permissions:
@@ -579,7 +645,6 @@ jobs:
           fi
 
       - name: "🔨 Build & Push Node.js Docker Image"
-        id: node_dockerhub_push
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -590,8 +655,36 @@ jobs:
             srikanthkarthi/mcp-portfolio-server:${{ steps.version.outputs.version }}
           platforms: linux/amd64,linux/arm64
 
+  publish-docker-python-dockerhub:
+    name: "🐍 Publish Python Docker Image - Docker Hub"
+    runs-on: ubuntu-latest
+    needs: [trivy_fs_scan, sonarcloud, sbom-validation]
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: "🔄 Checkout Repository"
+        uses: actions/checkout@v5
+
+      - name: "🔧 Setup Docker Buildx"
+        uses: docker/setup-buildx-action@v3
+
+      - name: "🔑 Login to Docker Hub Registry"
+        uses: docker/login-action@v3
+        with:
+          username: srikanthkarthi
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+      - name: "🏷️ Extract Version from Git Tag or Input"
+        id: version
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+          fi
+
       - name: "🔨 Build & Push Python Docker Image"
-        id: python_dockerhub_push
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -602,8 +695,36 @@ jobs:
             srikanthkarthi/mcp-portfolio-server:python-${{ steps.version.outputs.version }}
           platforms: linux/amd64,linux/arm64
 
+  publish-docker-multi-dockerhub:
+    name: "🔧 Publish Multi-Runtime Docker Image - Docker Hub"
+    runs-on: ubuntu-latest
+    needs: [trivy_fs_scan, sonarcloud, sbom-validation]
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: "🔄 Checkout Repository"
+        uses: actions/checkout@v5
+
+      - name: "🔧 Setup Docker Buildx"
+        uses: docker/setup-buildx-action@v3
+
+      - name: "🔑 Login to Docker Hub Registry"
+        uses: docker/login-action@v3
+        with:
+          username: srikanthkarthi
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+      - name: "🏷️ Extract Version from Git Tag or Input"
+        id: version
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+          fi
+
       - name: "🔨 Build & Push Multi-Runtime Docker Image"
-        id: multi_dockerhub_push
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -618,7 +739,7 @@ jobs:
   sign-containers-dockerhub:
     name: "🔐 Sign Container Images - Docker Hub"
     runs-on: ubuntu-latest
-    needs: publish-docker-hub-registry
+    needs: [publish-docker-nodejs-dockerhub, publish-docker-python-dockerhub, publish-docker-multi-dockerhub]
     permissions:
       id-token: write
     steps:
