@@ -55,22 +55,22 @@ export const mockPortfolioData = [
     description: 'B.E. in Electronics and Communication',
     keywords: ['education', 'degree', 'engineering']
   }
-];
+]
 
-export const emptyPortfolioData = [];
+export const emptyPortfolioData = []
 
-export const malformedDataPath = '/nonexistent/path/data.json';
+export const malformedDataPath = '/nonexistent/path/data.json'
 
 export const validSearchQueries = [
   { query: 'cloud', expectedCount: 3 },
   { query: 'devops', expectedCount: 3 },
   { query: 'python', expectedCount: 1 },
   { query: 'nonexistent', expectedCount: 0 }
-];
+]
 
 export const categoryTests = [
   { category: 'Contact', expectedCount: 2 },
   { category: 'Tech Stack', expectedCount: 2 },
   { category: 'Experience', expectedCount: 1 },
   { category: 'NonExistent', expectedCount: 0 }
-];
+]

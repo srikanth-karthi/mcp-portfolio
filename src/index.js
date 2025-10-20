@@ -1,46 +1,46 @@
 #!/usr/bin/env node
-import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { Server } from '@modelcontextprotocol/sdk/server/index.js'
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import {
   CallToolRequestSchema,
   ErrorCode,
   ListToolsRequestSchema,
-  McpError,
-} from '@modelcontextprotocol/sdk/types.js';
-import { readFileSync } from 'fs';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
+  McpError
+} from '@modelcontextprotocol/sdk/types.js'
+import { readFileSync } from 'fs'
+import { join, dirname } from 'path'
+import { fileURLToPath } from 'url'
 import {
   searchPortfolio,
   getPortfolioCategories,
   getPortfolioItem,
   getContactInfo,
   getTechStack
-} from './portfolio-tools.js';
+} from './portfolio-tools.js'
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
 class PortfolioMCPServer {
-  constructor() {
+  constructor () {
     this.server = new Server(
       {
         name: 'portfolio-server',
-        version: '1.0.0',
+        version: '1.0.0'
       },
       {
         capabilities: {
-          tools: {},
-        },
+          tools: {}
+        }
       }
-    );
+    )
 
-    this.portfolioData = null;
-    this.loadPortfolioData();
-    this.setupToolHandlers();
+    this.portfolioData = null
+    this.loadPortfolioData()
+    this.setupToolHandlers()
   }
 
-  loadPortfolioData() {
+  loadPortfolioData () {
     try {
       // Try multiple possible paths for db/sample-data.json
       const possiblePaths = [
@@ -48,53 +48,59 @@ class PortfolioMCPServer {
         join(__dirname, '../db/sample-data.json'),
         join(__dirname, '../../db/sample-data.json'),
         'db/sample-data.json'
-      ];
+      ]
 
-      let dataPath = null;
+      let dataPath = null
       for (const path of possiblePaths) {
         try {
-          readFileSync(path, 'utf-8');
-          dataPath = path;
-          break;
+          readFileSync(path, 'utf-8')
+          dataPath = path
+          break
         } catch (e) {
           // Continue to next path
         }
       }
 
       if (!dataPath) {
-        throw new Error('No portfolio data file found at db/sample-data.json in any expected location');
+        throw new Error(
+          'No portfolio data file found at db/sample-data.json in any expected location'
+        )
       }
 
-      const rawData = readFileSync(dataPath, 'utf-8');
-      this.portfolioData = JSON.parse(rawData);
-      console.error(`Portfolio data loaded from: ${dataPath}`);
+      const rawData = readFileSync(dataPath, 'utf-8')
+      this.portfolioData = JSON.parse(rawData)
+      console.error(`Portfolio data loaded from: ${dataPath}`)
     } catch (error) {
-      console.error('Failed to load portfolio data:', error);
-      this.portfolioData = [];
+      console.error('Failed to load portfolio data:', error)
+      this.portfolioData = []
     }
   }
 
-  setupToolHandlers() {
+  setupToolHandlers () {
     this.server.setRequestHandler(ListToolsRequestSchema, async () => {
       return {
         tools: [
           {
             name: 'search_portfolio',
-            description: 'Search through Srikanth\'s portfolio data by keywords, category, or content',
+            description:
+              "Search through Srikanth's portfolio data by keywords, category, or content",
             inputSchema: {
               type: 'object',
               properties: {
                 query: {
                   type: 'string',
-                  description: 'Search query to find relevant portfolio information'
+                  description:
+                    'Search query to find relevant portfolio information'
                 },
                 category: {
                   type: 'string',
-                  description: 'Filter by specific category (e.g., "Tech Stack", "Experience", "Education")'
+                  description:
+                    'Filter by specific category (e.g., "Tech Stack", "Experience", "Education")'
                 },
                 limit: {
                   type: 'number',
-                  description: 'Maximum number of results to return (default: 10)',
+                  description:
+                    'Maximum number of results to return (default: 10)',
                   default: 10
                 }
               },
@@ -135,57 +141,59 @@ class PortfolioMCPServer {
           },
           {
             name: 'get_tech_stack',
-            description: 'Get detailed information about Srikanth\'s technical skills and tools',
+            description:
+              "Get detailed information about Srikanth's technical skills and tools",
             inputSchema: {
               type: 'object',
               properties: {
                 type: {
                   type: 'string',
-                  description: 'Filter by specific tech type (e.g., "Programming Languages", "Cloud Platforms")'
+                  description:
+                    'Filter by specific tech type (e.g., "Programming Languages", "Cloud Platforms")'
                 }
               }
             }
           }
         ]
-      };
-    });
+      }
+    })
 
     this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
-      const { name, arguments: args } = request.params;
+      const { name, arguments: args } = request.params
 
       try {
         switch (name) {
           case 'search_portfolio':
-            return await searchPortfolio(this.portfolioData, args);
+            return await searchPortfolio(this.portfolioData, args)
           case 'get_portfolio_categories':
-            return await getPortfolioCategories(this.portfolioData);
+            return await getPortfolioCategories(this.portfolioData)
           case 'get_portfolio_item':
-            return await getPortfolioItem(this.portfolioData, args);
+            return await getPortfolioItem(this.portfolioData, args)
           case 'get_contact_info':
-            return await getContactInfo(this.portfolioData);
+            return await getContactInfo(this.portfolioData)
           case 'get_tech_stack':
-            return await getTechStack(this.portfolioData, args);
+            return await getTechStack(this.portfolioData, args)
           default:
             throw new McpError(
               ErrorCode.MethodNotFound,
               `Unknown tool: ${name}`
-            );
+            )
         }
       } catch (error) {
         throw new McpError(
           ErrorCode.InternalError,
           `Error executing tool ${name}: ${error.message}`
-        );
+        )
       }
-    });
+    })
   }
 
-  async run() {
-    const transport = new StdioServerTransport();
-    await this.server.connect(transport);
-    console.error('Portfolio MCP server running on stdio');
+  async run () {
+    const transport = new StdioServerTransport()
+    await this.server.connect(transport)
+    console.error('Portfolio MCP server running on stdio')
   }
 }
 
-const server = new PortfolioMCPServer();
-server.run().catch(console.error);
+const server = new PortfolioMCPServer()
+server.run().catch(console.error)
