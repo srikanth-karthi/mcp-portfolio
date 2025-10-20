@@ -1,218 +1,246 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { mockPortfolioData } from '../fixtures/portfolio-data.js';
-import { getContactInfo } from '../../src/portfolio-tools.js';
+import { describe, it, expect, beforeEach } from 'vitest'
+import { mockPortfolioData } from '../fixtures/portfolio-data.js'
+import { getContactInfo } from '../../src/portfolio-tools.js'
 
 describe('Get Contact Info Functionality', () => {
-  let portfolioData;
+  let portfolioData
 
   beforeEach(() => {
-    portfolioData = mockPortfolioData;
-  });
+    portfolioData = mockPortfolioData
+  })
 
   describe('Basic functionality', () => {
     it('should return all contact items', async () => {
-      const result = await getContactInfo(portfolioData);
-      const parsedResult = JSON.parse(result.content[0].text);
+      const result = await getContactInfo(portfolioData)
+      const parsedResult = JSON.parse(result.content[0].text)
 
-      expect(parsedResult.contact).toBeDefined();
-      expect(Array.isArray(parsedResult.contact)).toBe(true);
-    });
+      expect(parsedResult.contact).toBeDefined()
+      expect(Array.isArray(parsedResult.contact)).toBe(true)
+    })
 
     it('should only return items with Contact category', async () => {
-      const result = await getContactInfo(portfolioData);
-      const parsedResult = JSON.parse(result.content[0].text);
+      const result = await getContactInfo(portfolioData)
+      const parsedResult = JSON.parse(result.content[0].text)
 
-      parsedResult.contact.forEach(item => {
-        expect(item.category).toBe('Contact');
-      });
-    });
+      parsedResult.contact.forEach((item) => {
+        expect(item.category).toBe('Contact')
+      })
+    })
 
     it('should return expected number of contact items', async () => {
-      const result = await getContactInfo(portfolioData);
-      const parsedResult = JSON.parse(result.content[0].text);
+      const result = await getContactInfo(portfolioData)
+      const parsedResult = JSON.parse(result.content[0].text)
 
       const expectedContactCount = mockPortfolioData.filter(
-        item => item.category === 'Contact'
-      ).length;
+        (item) => item.category === 'Contact'
+      ).length
 
-      expect(parsedResult.contact.length).toBe(expectedContactCount);
-    });
+      expect(parsedResult.contact.length).toBe(expectedContactCount)
+    })
 
     it('should include all contact item properties', async () => {
-      const result = await getContactInfo(portfolioData);
-      const parsedResult = JSON.parse(result.content[0].text);
+      const result = await getContactInfo(portfolioData)
+      const parsedResult = JSON.parse(result.content[0].text)
 
       if (parsedResult.contact.length > 0) {
-        parsedResult.contact.forEach(item => {
-          expect(item).toHaveProperty('id');
-          expect(item).toHaveProperty('category');
-          expect(item).toHaveProperty('title');
-          expect(item).toHaveProperty('description');
-          expect(item).toHaveProperty('keywords');
-        });
+        parsedResult.contact.forEach((item) => {
+          expect(item).toHaveProperty('id')
+          expect(item).toHaveProperty('category')
+          expect(item).toHaveProperty('title')
+          expect(item).toHaveProperty('description')
+          expect(item).toHaveProperty('keywords')
+        })
       }
-    });
-  });
+    })
+  })
 
   describe('Response format', () => {
     it('should return correct response structure', async () => {
-      const result = await getContactInfo(portfolioData);
+      const result = await getContactInfo(portfolioData)
 
-      expect(result).toHaveProperty('content');
-      expect(Array.isArray(result.content)).toBe(true);
-      expect(result.content[0]).toHaveProperty('type', 'text');
-      expect(result.content[0]).toHaveProperty('text');
-    });
+      expect(result).toHaveProperty('content')
+      expect(Array.isArray(result.content)).toBe(true)
+      expect(result.content[0]).toHaveProperty('type', 'text')
+      expect(result.content[0]).toHaveProperty('text')
+    })
 
     it('should return valid JSON in text field', async () => {
-      const result = await getContactInfo(portfolioData);
+      const result = await getContactInfo(portfolioData)
 
       expect(() => {
-        JSON.parse(result.content[0].text);
-      }).not.toThrow();
-    });
+        JSON.parse(result.content[0].text)
+      }).not.toThrow()
+    })
 
     it('should wrap contact items in contact property', async () => {
-      const result = await getContactInfo(portfolioData);
-      const parsedResult = JSON.parse(result.content[0].text);
+      const result = await getContactInfo(portfolioData)
+      const parsedResult = JSON.parse(result.content[0].text)
 
-      expect(parsedResult).toHaveProperty('contact');
-      expect(Object.keys(parsedResult)).toContain('contact');
-    });
-  });
+      expect(parsedResult).toHaveProperty('contact')
+      expect(Object.keys(parsedResult)).toContain('contact')
+    })
+  })
 
   describe('Category filtering accuracy', () => {
     it('should not include non-Contact items', async () => {
-      const result = await getContactInfo(portfolioData);
-      const parsedResult = JSON.parse(result.content[0].text);
+      const result = await getContactInfo(portfolioData)
+      const parsedResult = JSON.parse(result.content[0].text)
 
-      const nonContactCategories = ['Tech Stack', 'Experience', 'Education', 'Profile Summary'];
+      const nonContactCategories = [
+        'Tech Stack',
+        'Experience',
+        'Education',
+        'Profile Summary'
+      ]
 
-      parsedResult.contact.forEach(item => {
-        expect(nonContactCategories).not.toContain(item.category);
-      });
-    });
+      parsedResult.contact.forEach((item) => {
+        expect(nonContactCategories).not.toContain(item.category)
+      })
+    })
 
     it('should be case-sensitive for category matching', async () => {
       const mixedCaseData = [
         ...mockPortfolioData,
-        { id: 999, category: 'contact', title: 'lowercase', description: '', keywords: [] },
-        { id: 1000, category: 'CONTACT', title: 'uppercase', description: '', keywords: [] }
-      ];
+        {
+          id: 999,
+          category: 'contact',
+          title: 'lowercase',
+          description: '',
+          keywords: []
+        },
+        {
+          id: 1000,
+          category: 'CONTACT',
+          title: 'uppercase',
+          description: '',
+          keywords: []
+        }
+      ]
 
-      const result = await getContactInfo(mixedCaseData);
-      const parsedResult = JSON.parse(result.content[0].text);
+      const result = await getContactInfo(mixedCaseData)
+      const parsedResult = JSON.parse(result.content[0].text)
 
       // Should only match exact case 'Contact'
-      parsedResult.contact.forEach(item => {
-        expect(item.category).toBe('Contact');
-      });
-    });
-  });
+      parsedResult.contact.forEach((item) => {
+        expect(item.category).toBe('Contact')
+      })
+    })
+  })
 
   describe('Edge cases', () => {
     it('should return empty array when no contact items exist', async () => {
-      const noContactData = mockPortfolioData.filter(item => item.category !== 'Contact');
+      const noContactData = mockPortfolioData.filter(
+        (item) => item.category !== 'Contact'
+      )
 
-      const result = await getContactInfo(noContactData);
-      const parsedResult = JSON.parse(result.content[0].text);
+      const result = await getContactInfo(noContactData)
+      const parsedResult = JSON.parse(result.content[0].text)
 
-      expect(parsedResult.contact).toEqual([]);
-    });
+      expect(parsedResult.contact).toEqual([])
+    })
 
     it('should handle empty portfolio data', async () => {
-      const emptyPortfolioData = [];
-      const result = await getContactInfo(emptyPortfolioData);
-      const parsedResult = JSON.parse(result.content[0].text);
+      const emptyPortfolioData = []
+      const result = await getContactInfo(emptyPortfolioData)
+      const parsedResult = JSON.parse(result.content[0].text)
 
-      expect(parsedResult.contact).toEqual([]);
-    });
+      expect(parsedResult.contact).toEqual([])
+    })
 
     it('should handle portfolio with only Contact items', async () => {
-      const onlyContactData = mockPortfolioData.filter(item => item.category === 'Contact');
+      const onlyContactData = mockPortfolioData.filter(
+        (item) => item.category === 'Contact'
+      )
 
-      const result = await getContactInfo(onlyContactData);
-      const parsedResult = JSON.parse(result.content[0].text);
+      const result = await getContactInfo(onlyContactData)
+      const parsedResult = JSON.parse(result.content[0].text)
 
-      expect(parsedResult.contact.length).toBe(onlyContactData.length);
-    });
-  });
+      expect(parsedResult.contact.length).toBe(onlyContactData.length)
+    })
+  })
 
   describe('Data integrity', () => {
     it('should not modify original portfolio data', async () => {
-      const originalLength = portfolioData.length;
-      const originalData = JSON.parse(JSON.stringify(portfolioData));
+      const originalLength = portfolioData.length
+      const originalData = JSON.parse(JSON.stringify(portfolioData))
 
-      await getContactInfo(portfolioData);
+      await getContactInfo(portfolioData)
 
-      expect(portfolioData.length).toBe(originalLength);
-      expect(portfolioData).toEqual(originalData);
-    });
+      expect(portfolioData.length).toBe(originalLength)
+      expect(portfolioData).toEqual(originalData)
+    })
 
     it('should return same data on multiple calls', async () => {
-      const result1 = await getContactInfo(portfolioData);
-      const result2 = await getContactInfo(portfolioData);
+      const result1 = await getContactInfo(portfolioData)
+      const result2 = await getContactInfo(portfolioData)
 
-      const parsed1 = JSON.parse(result1.content[0].text);
-      const parsed2 = JSON.parse(result2.content[0].text);
+      const parsed1 = JSON.parse(result1.content[0].text)
+      const parsed2 = JSON.parse(result2.content[0].text)
 
-      expect(parsed1.contact).toEqual(parsed2.contact);
-    });
+      expect(parsed1.contact).toEqual(parsed2.contact)
+    })
 
     it('should maintain item order from original data', async () => {
-      const result = await getContactInfo(portfolioData);
-      const parsedResult = JSON.parse(result.content[0].text);
+      const result = await getContactInfo(portfolioData)
+      const parsedResult = JSON.parse(result.content[0].text)
 
       const originalContactItems = mockPortfolioData.filter(
-        item => item.category === 'Contact'
-      );
+        (item) => item.category === 'Contact'
+      )
 
-      expect(parsedResult.contact).toEqual(originalContactItems);
-    });
-  });
+      expect(parsedResult.contact).toEqual(originalContactItems)
+    })
+  })
 
   describe('Contact item types', () => {
     it('should include email contact if present', async () => {
-      const result = await getContactInfo(portfolioData);
-      const parsedResult = JSON.parse(result.content[0].text);
+      const result = await getContactInfo(portfolioData)
+      const parsedResult = JSON.parse(result.content[0].text)
 
-      const hasEmail = parsedResult.contact.some(
-        item => item.title.toLowerCase().includes('email')
-      );
+      const hasEmail = parsedResult.contact.some((item) =>
+        item.title.toLowerCase().includes('email')
+      )
 
       const dataHasEmail = mockPortfolioData.some(
-        item => item.category === 'Contact' && item.title.toLowerCase().includes('email')
-      );
+        (item) =>
+          item.category === 'Contact' &&
+          item.title.toLowerCase().includes('email')
+      )
 
-      expect(hasEmail).toBe(dataHasEmail);
-    });
+      expect(hasEmail).toBe(dataHasEmail)
+    })
 
     it('should include social media contacts if present', async () => {
-      const result = await getContactInfo(portfolioData);
-      const parsedResult = JSON.parse(result.content[0].text);
+      const result = await getContactInfo(portfolioData)
+      const parsedResult = JSON.parse(result.content[0].text)
 
-      const hasSocial = parsedResult.contact.some(
-        item => item.keywords.some(keyword => keyword.toLowerCase().includes('social'))
-      );
+      const hasSocial = parsedResult.contact.some((item) =>
+        item.keywords.some((keyword) =>
+          keyword.toLowerCase().includes('social')
+        )
+      )
 
       const dataHasSocial = mockPortfolioData.some(
-        item => item.category === 'Contact' &&
-        item.keywords.some(keyword => keyword.toLowerCase().includes('social'))
-      );
+        (item) =>
+          item.category === 'Contact' &&
+          item.keywords.some((keyword) =>
+            keyword.toLowerCase().includes('social')
+          )
+      )
 
-      expect(hasSocial).toBe(dataHasSocial);
-    });
-  });
+      expect(hasSocial).toBe(dataHasSocial)
+    })
+  })
 
   describe('Async behavior', () => {
     it('should be an async function', async () => {
-      const result = getContactInfo(portfolioData);
-      expect(result).toBeInstanceOf(Promise);
-      await result;
-    });
+      const result = getContactInfo(portfolioData)
+      expect(result).toBeInstanceOf(Promise)
+      await result
+    })
 
     it('should resolve successfully', async () => {
-      await expect(getContactInfo(portfolioData)).resolves.toBeDefined();
-    });
-  });
-});
+      await expect(getContactInfo(portfolioData)).resolves.toBeDefined()
+    })
+  })
+})
