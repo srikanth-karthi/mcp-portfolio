@@ -144,7 +144,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: "📥 Download SBOM Artifact"
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: sbom
 
@@ -887,7 +887,7 @@ jobs:
           echo "✅ Verification process completed"
 
       - name: "📥 Download All Checksums"
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           pattern: '*-checksums'
           path: checksums/
