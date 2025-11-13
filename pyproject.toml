@@ -41,7 +41,7 @@ build-backend = "hatchling.build"
 packages = ["src/mcp_portfolio_server"]
 
 [tool.hatch.build.targets.wheel.shared-data]
-"db/sample-data.json" = "share/srikanth-mcp-portfolio/db/sample-data.json"
+"db/portfolio-data/ai-portfolio.json" = "share/srikanth-mcp-portfolio/db/portfolio-data/ai-portfolio.json"
 
 [tool.hatch.build.targets.sdist]
 include = [

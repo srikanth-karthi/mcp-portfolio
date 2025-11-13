@@ -42,12 +42,12 @@ class PortfolioMCPServer {
 
   loadPortfolioData () {
     try {
-      // Try multiple possible paths for db/sample-data.json
+      // Try multiple possible paths for db/portfolio-data/ai-portfolio.json
       const possiblePaths = [
-        process.env.DATA_PATH || '/app/db/sample-data.json',
-        join(__dirname, '../db/sample-data.json'),
-        join(__dirname, '../../db/sample-data.json'),
-        'db/sample-data.json'
+        process.env.DATA_PATH || '/app/db/portfolio-data/ai-portfolio.json',
+        join(__dirname, '../db/portfolio-data/ai-portfolio.json'),
+        join(__dirname, '../../db/portfolio-data/ai-portfolio.json'),
+        'db/portfolio-data/ai-portfolio.json'
       ]
 
       let dataPath = null
@@ -63,7 +63,7 @@ class PortfolioMCPServer {
 
       if (!dataPath) {
         throw new Error(
-          'No portfolio data file found at db/sample-data.json in any expected location'
+          'No portfolio data file found at db/portfolio-data/ai-portfolio.json in any expected location'
         )
       }
 

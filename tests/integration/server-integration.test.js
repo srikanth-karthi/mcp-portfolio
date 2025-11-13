@@ -183,16 +183,16 @@ describe('Server Integration Tests', () => {
 
     it('should validate data paths configuration', () => {
       const possiblePaths = [
-        '/app/db/sample-data.json',
-        '../db/sample-data.json',
-        '../../db/sample-data.json',
-        './db/sample-data.json'
+        '/app/db/portfolio-data/ai-portfolio.json',
+        '../db/portfolio-data/ai-portfolio.json',
+        '../../db/portfolio-data/ai-portfolio.json',
+        './db/portfolio-data/ai-portfolio.json'
       ]
 
       expect(possiblePaths.length).toBeGreaterThan(0)
       possiblePaths.forEach((path) => {
         expect(typeof path).toBe('string')
-        expect(path).toContain('sample-data.json')
+        expect(path).toContain('ai-portfolio.json')
       })
     })
   })

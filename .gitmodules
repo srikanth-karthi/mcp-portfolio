@@ -1,0 +1,3 @@
+[submodule "db/portfolio-data"]
+	path = db/portfolio-data
+	url = https://github.com/srikanth-karthi/portfolio-data.git

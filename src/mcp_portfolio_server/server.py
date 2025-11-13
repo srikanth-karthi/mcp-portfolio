@@ -27,13 +27,13 @@ class PortfolioMCPServer:
     def load_portfolio_data(self):
         """Load portfolio data from JSON file."""
         try:
-            # Try different possible paths for db/sample-data.json
+            # Try different possible paths for db/portfolio-data/ai-portfolio.json
             possible_paths = [
-                Path(__file__).parent.parent.parent.parent / "db" / "sample-data.json",
-                Path(__file__).parent.parent.parent / "db" / "sample-data.json",
-                Path(__file__).parent.parent / "db" / "sample-data.json",
-                Path("db/sample-data.json"),
-                Path("../db/sample-data.json"),
+                Path(__file__).parent.parent.parent.parent / "db" / "portfolio-data" / "ai-portfolio.json",
+                Path(__file__).parent.parent.parent / "db" / "portfolio-data" / "ai-portfolio.json",
+                Path(__file__).parent.parent / "db" / "portfolio-data" / "ai-portfolio.json",
+                Path("db/portfolio-data/ai-portfolio.json"),
+                Path("../db/portfolio-data/ai-portfolio.json"),
             ]
 
             data_path = None
@@ -47,7 +47,7 @@ class PortfolioMCPServer:
                     self.portfolio_data = json.load(f)
                 logger.info(f"Loaded {len(self.portfolio_data)} portfolio items from {data_path}")
             else:
-                logger.error("Could not find portfolio data file at db/sample-data.json")
+                logger.error("Could not find portfolio data file at db/portfolio-data/ai-portfolio.json")
                 self.portfolio_data = []
 
         except Exception as e:

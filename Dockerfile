@@ -15,7 +15,7 @@ RUN npm ci --only=production
 
 # Copy source code and data
 COPY src/index.js ./src/
-COPY db/sample-data.json ./db/
+COPY db/portfolio-data/ ./db/portfolio-data/
 
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs && \
@@ -40,7 +40,7 @@ WORKDIR /app
 COPY pyproject.toml ./
 COPY README.md ./
 COPY src/mcp_portfolio_server/ ./src/mcp_portfolio_server/
-COPY db/sample-data.json ./db/
+COPY db/portfolio-data/ ./db/portfolio-data/
 
 # Install Python dependencies
 RUN pip install --no-cache-dir --break-system-packages -e .
@@ -78,7 +78,7 @@ COPY package*.json ./
 COPY pyproject.toml ./
 COPY README.md ./
 COPY src/ ./src/
-COPY db/sample-data.json ./db/
+COPY db/portfolio-data/ ./db/portfolio-data/
 
 # Install dependencies for both runtimes, create non-root user, and set ownership
 RUN npm ci --only=production && \

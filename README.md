@@ -239,7 +239,7 @@ docker build --target multi -t mcp-portfolio:multi .
 | -------------------- | ------------------------ | ----------------------- |
 | `NODE_ENV`           | Node.js environment      | `production`            |
 | `PYTHONUNBUFFERED`   | Python output buffering  | `1`                     |
-| `DATA_PATH`          | Portfolio data file path | `/app/sample-data.json` |
+| `DATA_PATH`          | Portfolio data file path | `/app/db/portfolio-data/ai-portfolio.json` |
 
 Switch between Node.js and Python in multi-runtime container:
 

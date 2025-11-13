@@ -17,10 +17,10 @@ class MockPortfolioMCPServer {
   loadPortfolioData () {
     try {
       const possiblePaths = [
-        process.env.DATA_PATH || '/app/db/sample-data.json',
-        join(__dirname, '../db/sample-data.json'),
-        join(__dirname, '../../db/sample-data.json'),
-        './db/sample-data.json'
+        process.env.DATA_PATH || '/app/db/portfolio-data/ai-portfolio.json',
+        join(__dirname, '../db/portfolio-data/ai-portfolio.json'),
+        join(__dirname, '../../db/portfolio-data/ai-portfolio.json'),
+        './db/portfolio-data/ai-portfolio.json'
       ]
 
       let dataPath = null
@@ -52,14 +52,14 @@ describe('Data Loading Functionality', () => {
   describe('Path resolution logic', () => {
     it('should try multiple paths when loading data', () => {
       const possiblePaths = [
-        process.env.DATA_PATH || '/app/db/sample-data.json',
-        join(__dirname, '../db/sample-data.json'),
-        join(__dirname, '../../db/sample-data.json'),
-        './db/sample-data.json'
+        process.env.DATA_PATH || '/app/db/portfolio-data/ai-portfolio.json',
+        join(__dirname, '../db/portfolio-data/ai-portfolio.json'),
+        join(__dirname, '../../db/portfolio-data/ai-portfolio.json'),
+        './db/portfolio-data/ai-portfolio.json'
       ]
 
       expect(possiblePaths.length).toBeGreaterThan(1)
-      expect(possiblePaths).toContain('./db/sample-data.json')
+      expect(possiblePaths).toContain('./db/portfolio-data/ai-portfolio.json')
     })
 
     it('should prioritize DATA_PATH environment variable', () => {
@@ -67,10 +67,10 @@ describe('Data Loading Functionality', () => {
       process.env.DATA_PATH = customPath
 
       const possiblePaths = [
-        process.env.DATA_PATH || '/app/db/sample-data.json',
-        join(__dirname, '../db/sample-data.json'),
-        join(__dirname, '../../db/sample-data.json'),
-        './db/sample-data.json'
+        process.env.DATA_PATH || '/app/db/portfolio-data/ai-portfolio.json',
+        join(__dirname, '../db/portfolio-data/ai-portfolio.json'),
+        join(__dirname, '../../db/portfolio-data/ai-portfolio.json'),
+        './db/portfolio-data/ai-portfolio.json'
       ]
 
       expect(possiblePaths[0]).toBe(customPath)
