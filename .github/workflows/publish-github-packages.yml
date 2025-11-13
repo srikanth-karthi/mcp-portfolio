@@ -30,6 +30,14 @@ jobs:
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0
+          submodules: recursive
+          token: ${{ secrets.GH_PAT }}
+
+      - name: "📥 Update Submodule to Latest"
+        run: |
+          git submodule update --remote --recursive
+          echo "✅ Submodule updated to latest version"
+
       - uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -44,6 +52,14 @@ jobs:
     steps:
       - name: "🔄 Checkout Repository"
         uses: actions/checkout@v5
+        with:
+          submodules: recursive
+          token: ${{ secrets.GH_PAT }}
+
+      - name: "📥 Update Submodule to Latest"
+        run: |
+          git submodule update --remote --recursive
+          echo "✅ Submodule updated to latest version"
 
       - name: "🧪 Dependency Review"
         uses: actions/dependency-review-action@v4
@@ -60,6 +76,13 @@ jobs:
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
+          submodules: recursive
+          token: ${{ secrets.GH_PAT }}
+
+      - name: "📥 Update Submodule to Latest"
+        run: |
+          git submodule update --remote --recursive
+          echo "✅ Submodule updated to latest version"
 
       - name: "⚙️ Setup Node.js"
         uses: actions/setup-node@v4
@@ -100,6 +123,15 @@ jobs:
     needs: gitleaks-scan
     steps:
       - uses: actions/checkout@v5
+        with:
+          submodules: recursive
+          token: ${{ secrets.GH_PAT }}
+
+      - name: "📥 Update Submodule to Latest"
+        run: |
+          git submodule update --remote --recursive
+          echo "✅ Submodule updated to latest version"
+
       - uses: aquasecurity/trivy-action@0.33.1
         with:
           scan-type: fs
@@ -118,6 +150,14 @@ jobs:
     steps:
       - name: "🔄 Checkout Repository"
         uses: actions/checkout@v5
+        with:
+          submodules: recursive
+          token: ${{ secrets.GH_PAT }}
+
+      - name: "📥 Update Submodule to Latest"
+        run: |
+          git submodule update --remote --recursive
+          echo "✅ Submodule updated to latest version"
 
       - name: "🧾 Generate SBOM"
         uses: anchore/sbom-action@v0
@@ -142,6 +182,14 @@ jobs:
     steps:
       - name: "🔄 Checkout Repository"
         uses: actions/checkout@v5
+        with:
+          submodules: recursive
+          token: ${{ secrets.GH_PAT }}
+
+      - name: "📥 Update Submodule to Latest"
+        run: |
+          git submodule update --remote --recursive
+          echo "✅ Submodule updated to latest version"
 
       - name: "📥 Download SBOM Artifact"
         uses: actions/download-artifact@v4
@@ -187,6 +235,14 @@ jobs:
     steps:
       - name: "🔄 Checkout Repository"
         uses: actions/checkout@v5
+        with:
+          submodules: recursive
+          token: ${{ secrets.GH_PAT }}
+
+      - name: "📥 Update Submodule to Latest"
+        run: |
+          git submodule update --remote --recursive
+          echo "✅ Submodule updated to latest version"
 
       - name: "⚙️ Setup Node.js with GitHub Registry"
         uses: actions/setup-node@v4
@@ -274,6 +330,14 @@ jobs:
     steps:
       - name: "🔄 Checkout Repository"
         uses: actions/checkout@v5
+        with:
+          submodules: recursive
+          token: ${{ secrets.GH_PAT }}
+
+      - name: "📥 Update Submodule to Latest"
+        run: |
+          git submodule update --remote --recursive
+          echo "✅ Submodule updated to latest version"
 
       - name: "⚙️ Setup Node.js with Public Registry"
         uses: actions/setup-node@v4
@@ -335,6 +399,14 @@ jobs:
     steps:
       - name: "🔄 Checkout Repository"
         uses: actions/checkout@v5
+        with:
+          submodules: recursive
+          token: ${{ secrets.GH_PAT }}
+
+      - name: "📥 Update Submodule to Latest"
+        run: |
+          git submodule update --remote --recursive
+          echo "✅ Submodule updated to latest version"
 
       - name: "🐍 Setup Python Environment"
         uses: actions/setup-python@v6
@@ -401,6 +473,14 @@ jobs:
     steps:
       - name: "🔄 Checkout Repository"
         uses: actions/checkout@v5
+        with:
+          submodules: recursive
+          token: ${{ secrets.GH_PAT }}
+
+      - name: "📥 Update Submodule to Latest"
+        run: |
+          git submodule update --remote --recursive
+          echo "✅ Submodule updated to latest version"
 
       - name: "🔧 Setup Docker Buildx"
         uses: docker/setup-buildx-action@v3
@@ -447,6 +527,14 @@ jobs:
     steps:
       - name: "🔄 Checkout Repository"
         uses: actions/checkout@v5
+        with:
+          submodules: recursive
+          token: ${{ secrets.GH_PAT }}
+
+      - name: "📥 Update Submodule to Latest"
+        run: |
+          git submodule update --remote --recursive
+          echo "✅ Submodule updated to latest version"
 
       - name: "🔧 Setup Docker Buildx"
         uses: docker/setup-buildx-action@v3
@@ -493,6 +581,14 @@ jobs:
     steps:
       - name: "🔄 Checkout Repository"
         uses: actions/checkout@v5
+        with:
+          submodules: recursive
+          token: ${{ secrets.GH_PAT }}
+
+      - name: "📥 Update Submodule to Latest"
+        run: |
+          git submodule update --remote --recursive
+          echo "✅ Submodule updated to latest version"
 
       - name: "🔧 Setup Docker Buildx"
         uses: docker/setup-buildx-action@v3
@@ -625,6 +721,14 @@ jobs:
     steps:
       - name: "🔄 Checkout Repository"
         uses: actions/checkout@v5
+        with:
+          submodules: recursive
+          token: ${{ secrets.GH_PAT }}
+
+      - name: "📥 Update Submodule to Latest"
+        run: |
+          git submodule update --remote --recursive
+          echo "✅ Submodule updated to latest version"
 
       - name: "🔧 Setup Docker Buildx"
         uses: docker/setup-buildx-action@v3
@@ -665,6 +769,14 @@ jobs:
     steps:
       - name: "🔄 Checkout Repository"
         uses: actions/checkout@v5
+        with:
+          submodules: recursive
+          token: ${{ secrets.GH_PAT }}
+
+      - name: "📥 Update Submodule to Latest"
+        run: |
+          git submodule update --remote --recursive
+          echo "✅ Submodule updated to latest version"
 
       - name: "🔧 Setup Docker Buildx"
         uses: docker/setup-buildx-action@v3
@@ -705,6 +817,14 @@ jobs:
     steps:
       - name: "🔄 Checkout Repository"
         uses: actions/checkout@v5
+        with:
+          submodules: recursive
+          token: ${{ secrets.GH_PAT }}
+
+      - name: "📥 Update Submodule to Latest"
+        run: |
+          git submodule update --remote --recursive
+          echo "✅ Submodule updated to latest version"
 
       - name: "🔧 Setup Docker Buildx"
         uses: docker/setup-buildx-action@v3
@@ -798,6 +918,9 @@ jobs:
     steps:
       - name: "🔄 Checkout Repository"
         uses: actions/checkout@v5
+        with:
+          submodules: recursive
+          token: ${{ secrets.GH_PAT }}
 
       - name: "🔑 Login to GitHub Container Registry"
         if: matrix.registry == 'ghcr'
@@ -858,6 +981,9 @@ jobs:
     steps:
       - name: "🔄 Checkout Repository"
         uses: actions/checkout@v5
+        with:
+          submodules: recursive
+          token: ${{ secrets.GH_PAT }}
 
       - name: "🏷️ Extract Version from Git Tag or Input"
         id: version
