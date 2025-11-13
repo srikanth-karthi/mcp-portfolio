@@ -503,7 +503,7 @@ jobs:
 
       - name: "🔨 Build & Push Node.js Docker Image"
         id: image_push
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           target: nodejs
@@ -557,7 +557,7 @@ jobs:
 
       - name: "🔨 Build & Push Python Docker Image"
         id: image_push
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           target: python
@@ -611,7 +611,7 @@ jobs:
 
       - name: "🔨 Build & Push Multi-Runtime Docker Image"
         id: image_push
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           target: multi
@@ -749,7 +749,7 @@ jobs:
           fi
 
       - name: "🔨 Build & Push Node.js Docker Image"
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           target: nodejs
@@ -797,7 +797,7 @@ jobs:
           fi
 
       - name: "🔨 Build & Push Python Docker Image"
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           target: python
@@ -845,7 +845,7 @@ jobs:
           fi
 
       - name: "🔨 Build & Push Multi-Runtime Docker Image"
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           target: multi
