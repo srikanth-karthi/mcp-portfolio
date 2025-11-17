@@ -22,7 +22,7 @@
     "prepublishOnly": "npm test"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.20.1"
+    "@modelcontextprotocol/sdk": "^1.22.0"
   },
   "keywords": [
     "mcp",
