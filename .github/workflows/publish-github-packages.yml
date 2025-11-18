@@ -638,21 +638,21 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: "🔐 Generate Provenance for Node.js Image"
-        uses: actions/attest-build-provenance@v1
+        uses: actions/attest-build-provenance@v3
         with:
           subject-name: ghcr.io/${{ github.repository_owner }}/mcp-portfolio-server
           subject-digest: ${{ needs.publish-docker-nodejs-ghcr.outputs.digest }}
           push-to-registry: true
 
       - name: "🔐 Generate Provenance for Python Image"
-        uses: actions/attest-build-provenance@v1
+        uses: actions/attest-build-provenance@v3
         with:
           subject-name: ghcr.io/${{ github.repository_owner }}/mcp-portfolio-server
           subject-digest: ${{ needs.publish-docker-python-ghcr.outputs.digest }}
           push-to-registry: true
 
       - name: "🔐 Generate Provenance for Multi-Runtime Image"
-        uses: actions/attest-build-provenance@v1
+        uses: actions/attest-build-provenance@v3
         with:
           subject-name: ghcr.io/${{ github.repository_owner }}/mcp-portfolio-server
           subject-digest: ${{ needs.publish-docker-multi-ghcr.outputs.digest }}
